@@ -17,7 +17,7 @@ async function bootstrap() {
     defaultVersion: '1'
   });
 
-  app.useGlobalPipes(new ValidationPipe({}));
+  app.useGlobalPipes(new ValidationPipe({whitelist: true}));
   app.useGlobalInterceptors(new ResponseInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter());
 

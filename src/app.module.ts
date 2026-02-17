@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import * as Joi from 'joi';
-import {ConfigModule, ConfigService} from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { BranchModule } from './branch/branch.module';
-import { OrganizationModule } from './organization/organization.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { SystemModule } from './modules/system/system.module';
+import { OrganizationsModule } from './modules/organizations/organizations.module';
 
 @Module({
   imports: [
@@ -17,6 +18,11 @@ import { OrganizationModule } from './organization/organization.module';
         MONGO_URI: Joi.string().required(),
         MONGO_DB_NAME: Joi.string().required(),
         PORT: Joi.number().default(3333),
+        JWT_SECRET: Joi.string().required(),
+        JWT_EXPIRATION: Joi.string().required(),
+        REFRESH_TOKEN_SECRET: Joi.string().required(),
+        REFRESH_TOKEN_EXPIRATION: Joi.string().required(),
+        SYSTEM_ACCESS_KEY: Joi.string().required(),
       }),
       validationOptions: {
         abortEarly: true,
@@ -27,12 +33,12 @@ import { OrganizationModule } from './organization/organization.module';
       useFactory: (config: ConfigService) => {
         return {
           uri: config.get('MONGO_URI'),
-          dbName: config.get('MONGO_DB_NAME'),
         };
       }
     }),
-    OrganizationModule,
-    BranchModule, 
+    AuthModule,
+    OrganizationsModule,
+    SystemModule,
   ],
   controllers: [],
   providers: [],
