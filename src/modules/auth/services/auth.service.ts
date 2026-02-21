@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
@@ -10,6 +10,7 @@ import { PasswordUtils } from '../../../common/utils/password.utils';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
+import { AdminRegisterDto } from '../dto/admin-register.dto';
 import { USER_ROLES } from '../../../constants/user-roles.constant';
 
 @Injectable()
@@ -52,6 +53,29 @@ export class AuthService {
       role: admin.branch_ids.length > 0 ? USER_ROLES.BRANCH_ADMIN : USER_ROLES.ORG_ADMIN,
       organization_id: admin.organization_id.toString(),
       branch_ids: admin.branch_ids.map(id => id.toString()),
+    };
+
+    return this.generateTokens(payload);
+  }
+
+  async adminRegister(registerDto: AdminRegisterDto) {
+    const existingAdmin = await this.adminModel.findOne({ email: registerDto.email });
+    if (existingAdmin) {
+      throw new ConflictException('Admin with this email already exists');
+    }
+    const hashedPassword = await PasswordUtils.hash(registerDto.password);
+    const admin = new this.adminModel({
+      ...registerDto,
+      password: hashedPassword,
+    });
+    await admin.save();
+
+    const payload: JwtPayload = {
+      sub: admin._id.toString(),
+      email: admin.email,
+      role: admin.branch_ids && admin.branch_ids.length > 0 ? USER_ROLES.BRANCH_ADMIN : USER_ROLES.ORG_ADMIN,
+      organization_id: admin.organization_id.toString(),
+      branch_ids: admin.branch_ids ? admin.branch_ids.map(id => id.toString()) : [],
     };
 
     return this.generateTokens(payload);

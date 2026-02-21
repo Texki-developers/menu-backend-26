@@ -1,13 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsMongoId } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength, IsOptional, IsMongoId, IsArray } from 'class-validator';
 
-export class RegisterDto {
+export class AdminRegisterDto {
   @ApiProperty({ example: 'John Doe' })
   @IsString()
   @IsNotEmpty()
   full_name: string;
 
-  @ApiProperty({ example: 'john@example.com' })
+  @ApiProperty({ example: 'admin@example.com' })
   @IsEmail()
   email: string;
 
@@ -27,8 +27,13 @@ export class RegisterDto {
   @IsNotEmpty()
   organization_id: string;
 
-  @ApiProperty({ example: '60d5ecb5b48777001f7c2232' })
-  @IsMongoId()
-  @IsNotEmpty()
-  branch_id: string;
+  @ApiProperty({
+    example: ['60d5ecb5b48777001f7c2232'],
+    required: false,
+    type: [String],
+  })
+  @IsArray()
+  @IsMongoId({ each: true })
+  @IsOptional()
+  branch_ids?: string[];
 }
