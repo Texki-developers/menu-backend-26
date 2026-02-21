@@ -1,5 +1,7 @@
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestFactory } from '@nestjs/core';
+import cookieParser from 'cookie-parser';
+
 import { AppModule } from './app.module';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ResponseInterceptor } from './common/interceptors';
@@ -7,6 +9,14 @@ import { HttpExceptionFilter } from './common/filters/http-exception-filters';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(cookieParser());
+  
+  app.enableCors({
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
+
 
   // Global prefix
   app.setGlobalPrefix('api');
