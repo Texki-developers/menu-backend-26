@@ -12,8 +12,8 @@ export class CustomerAuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  @ApiOperation({ summary: 'Customer registration' })
-  @ApiResponse({ status: 201, description: 'Customer registered successfully' })
+  @ApiOperation({ summary: 'Customer registration (sets HttpOnly cookies)' })
+  @ApiResponse({ status: 201, description: 'Customer registered successfully, tokens set in cookies' })
   async register(
     @Body() registerDto: RegisterDto,
     @Res({ passthrough: true }) response: Response,
@@ -25,8 +25,8 @@ export class CustomerAuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Customer login' })
-  @ApiResponse({ status: 200, description: 'Login successful' })
+  @ApiOperation({ summary: 'Customer login (sets HttpOnly cookies)' })
+  @ApiResponse({ status: 200, description: 'Login successful, tokens set in cookies' })
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) response: Response,
@@ -38,7 +38,8 @@ export class CustomerAuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Customer logout' })
+  @ApiOperation({ summary: 'Customer logout (clears cookies)' })
+  @ApiResponse({ status: 200, description: 'Logout successful, cookies cleared' })
   async logout(@Res({ passthrough: true }) response: Response) {
     CookieUtils.clearAuthCookies(response);
     return { message: 'Logged out successfully' };

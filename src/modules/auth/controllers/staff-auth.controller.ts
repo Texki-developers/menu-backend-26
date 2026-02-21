@@ -12,8 +12,8 @@ export class StaffAuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Staff login' })
-  @ApiResponse({ status: 200, description: 'Login successful' })
+  @ApiOperation({ summary: 'Staff login (sets HttpOnly cookies)' })
+  @ApiResponse({ status: 200, description: 'Login successful, tokens set in cookies' })
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) response: Response,
@@ -25,7 +25,8 @@ export class StaffAuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Staff logout' })
+  @ApiOperation({ summary: 'Staff logout (clears cookies)' })
+  @ApiResponse({ status: 200, description: 'Logout successful, cookies cleared' })
   async logout(@Res({ passthrough: true }) response: Response) {
     CookieUtils.clearAuthCookies(response);
     return { message: 'Logged out successfully' };
