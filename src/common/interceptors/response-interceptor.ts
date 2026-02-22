@@ -15,7 +15,8 @@ export class ResponseInterceptor<T>
                     data: response?.data || response,
                     message: response?.message,
                     meta: {
-                        timestamp: new Date().toISOString()
+                        timestamp: new Date().toISOString(),
+                        ...(response?.meta || {})
                     },
                 }
             })

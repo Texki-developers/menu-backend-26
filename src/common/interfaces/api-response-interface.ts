@@ -4,6 +4,7 @@ export interface ApiResponse<T> {
     data: T;
     meta?: {
       timestamp: string;
+      [key: string]: any;
     };
   }
   

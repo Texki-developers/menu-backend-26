@@ -1,26 +1,45 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsOptional } from "class-validator";
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { IsEnum, IsOptional, IsString } from "class-validator";
 import { BranchStatus } from "../constants/constant";
 
+export enum SortOrder {
+    ASC = 'asc',
+    DESC = 'desc'
+}
+
 export class GetAllBranchesDto {
-    @ApiProperty({example:'search query',required:false })
+    @ApiPropertyOptional({ example: 'search query' })
     @IsOptional()
-    query?:string;
+    @IsString()
+    query?: string;
 
-    @ApiProperty({example:1,required:false})
+    @ApiPropertyOptional({ example: '1' })
     @IsOptional()
-    page?:number;
+    @IsString()
+    page?: string;
 
-    @ApiProperty({example:10,required:false})
+    @ApiPropertyOptional({ example: '10' })
     @IsOptional()
-    limit?:number;
+    @IsString()
+    limit?: string;
 
-    @ApiProperty({example:'69948af4435dccf179e3e939',required:false})
+    @ApiPropertyOptional({ example: '69948af4435dccf179e3e939' })
     @IsOptional()
-    organization_id?:string;
+    @IsString()
+    organization_id?: string;
 
-    @ApiProperty({example:BranchStatus.ACTIVE,required:false})
+    @ApiPropertyOptional({ enum: BranchStatus, example: BranchStatus.ACTIVE })
     @IsOptional()
-    @IsEnum(BranchStatus)   
-    status?:BranchStatus;
+    @IsEnum(BranchStatus)
+    status?: BranchStatus;
+
+    @ApiPropertyOptional({ example: 'created_at' })
+    @IsOptional()
+    @IsString()
+    sortBy?: string;
+
+    @ApiPropertyOptional({ enum: SortOrder, example: SortOrder.DESC })
+    @IsOptional()
+    @IsEnum(SortOrder)
+    sortOrder?: SortOrder;
 }
