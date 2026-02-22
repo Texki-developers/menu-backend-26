@@ -119,7 +119,7 @@ export class BranchService {
                     branch.address_detail?.city || '',
                     branch.address_detail?.street || '',
                     branch.status || '',
-                    (branch as any).created_at ? new Date((branch as any).created_at).toLocaleString() : (branch as any).createdAt ? new Date((branch as any).createdAt).toLocaleString() : ''
+                    branch.created_at ? new Date(branch.created_at).toLocaleString() : branch.created_at ? new Date(branch.created_at).toLocaleString() : ''
                 ];
             });
 
