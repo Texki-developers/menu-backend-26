@@ -27,8 +27,8 @@ export class Branch extends Document {
         type: {
             street: String,
             city: String,
-            state: String,
             zip_code: String,
+            state: String,
             country: String,
             map_location_url: String,
             coordinates: {
@@ -41,12 +41,12 @@ export class Branch extends Document {
     address_detail: {
         street: string;
         city: string;
-        state: string;
+        state?: string;
         zip_code: string;
         country: string;
         map_location_url?: string;
         coordinates?: { lat: number; lng: number };
-    };
+    }; 
 
     @Prop({ type: Types.ObjectId, ref: 'Staff' })
     manager_id: Types.ObjectId;

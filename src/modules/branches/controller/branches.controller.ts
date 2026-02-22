@@ -16,7 +16,7 @@ export class BranchesController {
     @ApiOperation({summary:'Get all branches',description:'Get all branches'})
     @ApiResponse({status:HttpStatus.OK,type:Branch})
     async getAllBranches(@Query() getAllBranchesDto:GetAllBranchesDto){
-        
+        return this.branchService.getAllBranches(getAllBranchesDto);
     }
 
     @Post('create')

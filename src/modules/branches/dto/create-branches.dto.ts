@@ -24,7 +24,7 @@ class AddressDetailDto {
     @ApiProperty({ example: 'Dubai' })
     city: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
     @ApiProperty({ example: 'Dubai' })
     state: string;
