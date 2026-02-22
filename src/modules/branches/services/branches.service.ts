@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Branch } from '../schema/branches.schema';
 import { Model } from 'mongoose';
@@ -29,20 +29,20 @@ export class BranchService {
             const limitNum = Number(limit);
             const skip = (pageNum - 1) * limitNum;
 
-            // 1. Build Filter Object (Type-safe using Record)
-            const filter: Record<string, any> = {};
-
+            // 1. Build Filter Objects
+            const baseFilter: Record<string, any> = {};
             if (organization_id) {
-                filter.organization_id = new mongoose.Types.ObjectId(organization_id);
+                baseFilter.organization_id = new mongoose.Types.ObjectId(organization_id);
             }
 
+            const searchFilter: Record<string, any> = {};
             if (status) {
-                filter.status = status;
+                searchFilter.status = status;
             }
 
             if (query) {
                 const safeQuery = escapeRegex(query);
-                filter.$or = [
+                searchFilter.$or = [
                     { name: { $regex: safeQuery, $options: 'i' } },
                     { email: { $regex: safeQuery, $options: 'i' } },
                     { phone: { $regex: safeQuery, $options: 'i' } }
@@ -51,15 +51,24 @@ export class BranchService {
 
             // 2. Execute Aggregation (Single DB Round-trip)
             const [result] = await this.branchModel.aggregate([
-                { $match: filter },
+                { $match: baseFilter },
                 {
                     $facet: {
                         data: [
+                            { $match: searchFilter },
                             { $sort: { [sortBy]: sortOrder === SortOrder.DESC ? -1 : 1 } },
                             { $skip: skip },
                             { $limit: limitNum }
                         ],
                         total: [
+                            { $match: searchFilter },
+                            { $count: 'count' }
+                        ],
+                        totalWithoutFilter: [
+                            { $count: 'count' }
+                        ],
+                        totalActive: [
+                            { $match: { status: 'active' } },
                             { $count: 'count' }
                         ]
                     }
@@ -67,7 +76,9 @@ export class BranchService {
                 {
                     $project: {
                         data: 1,
-                        total: { $ifNull: [{ $arrayElemAt: ['$total.count', 0] }, 0] }
+                        total: { $ifNull: [{ $arrayElemAt: ['$total.count', 0] }, 0] },
+                        totalActive: { $ifNull: [{ $arrayElemAt: ['$totalActive.count', 0] }, 0] },
+                        totalWithoutFilter: { $ifNull: [{ $arrayElemAt: ['$totalWithoutFilter.count', 0] }, 0] }
                     }
                 }
             ]);
@@ -77,9 +88,11 @@ export class BranchService {
                 data: result.data,
                 meta: {
                     total: result.total,
+                    totalPages: Math.ceil(result.total / limitNum),
+                    totalActive: result.totalActive,
+                    totalWithoutFilter: result.totalWithoutFilter,
                     page: pageNum,
                     limit: limitNum,
-                    totalPages: Math.ceil(result.total / limitNum)
                 }
             };
 
@@ -96,6 +109,20 @@ export class BranchService {
         } catch (error) {
             handleDbError(error, 'creating the branch');
             throw error; // This line is technically unreachable as handleDbError throws
+        }
+    }
+
+    async deleteBranch(id: string) {
+        try {
+            const result = await this.branchModel.findByIdAndDelete(id);
+            if (!result) {
+                throw new NotFoundException('Branch not found');
+            }
+            return result;
+        } catch (error) {
+            if (error instanceof NotFoundException) throw error;
+            handleDbError(error, 'deleting the branch');
+            throw error;
         }
     }
 }
