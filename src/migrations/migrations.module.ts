@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import * as Joi from 'joi';
 import { UpdateStatusMigration } from "./update-status.migration";
 import { Branch, BranchSchema } from "../modules/branches/schema/branches.schema";
+import { AddCitySlugMigration } from "./add-city-slug.migration";
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { Branch, BranchSchema } from "../modules/branches/schema/branches.schema
       { name: Branch.name, schema: BranchSchema },
     ]),
   ],
-  providers: [UpdateStatusMigration],
-  exports: [UpdateStatusMigration],
+  providers: [UpdateStatusMigration, AddCitySlugMigration],
+  exports: [UpdateStatusMigration, AddCitySlugMigration],
 })
 export class MigrationsModule {}

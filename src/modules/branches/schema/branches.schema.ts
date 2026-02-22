@@ -1,6 +1,6 @@
 import {  Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, Types } from "mongoose";
-import { BranchStatus, BranchType, DayOfWeek } from "../constants/constant";
+import { BranchStatus, BranchType, City, CitySlug, DayOfWeek } from "../constants/constant";
 
 
 @Schema({ collection:'branches',timestamps:{
@@ -26,7 +26,8 @@ export class Branch extends Document {
     @Prop({
         type: {
             street: String,
-            city: String,
+            city: { type: String, enum: City },
+            citySlug: { type: String, enum: CitySlug },
             zip_code: String,
             state: String,
             country: String,
@@ -40,7 +41,8 @@ export class Branch extends Document {
     })
     address_detail: {
         street: string;
-        city: string;
+        city: City;
+        citySlug?: CitySlug;
         state?: string;
         zip_code: string;
         country: string;

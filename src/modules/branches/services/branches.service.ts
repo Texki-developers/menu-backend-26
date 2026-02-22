@@ -7,6 +7,7 @@ import { CreateBranchDto } from '../dto/create-branches.dto';
 import { UpdateBranchDto } from '../dto/update-branches.dto';
 import { handleDbError, escapeRegex } from '../../../common/utils';
 import { GetAllBranchesDto, SortOrder } from '../dto/get-all-branches.dto';
+import { CityToSlugMap } from '../constants/constant';
 
 @Injectable()
 export class BranchService { 
@@ -105,6 +106,9 @@ export class BranchService {
 
     async createBranch(branchData: CreateBranchDto): Promise<Branch> {
         try {
+            if (branchData.address_detail?.city) {
+                branchData.address_detail.citySlug = CityToSlugMap[branchData.address_detail.city];
+            }
             const branch = new this.branchModel(branchData);
             return await branch.save();
         } catch (error) {
@@ -115,6 +119,9 @@ export class BranchService {
 
     async updateBranch(id: string, updateData: UpdateBranchDto): Promise<Branch> {
         try {
+            if (updateData.address_detail?.city) {
+                updateData.address_detail.citySlug = CityToSlugMap[updateData.address_detail.city];
+            }
             const updatedBranch = await this.branchModel.findByIdAndUpdate(
                 id,
                 { $set: updateData },

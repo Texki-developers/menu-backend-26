@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsNumber, ValidateNested, IsBoolean, IsArray } from "class-validator";
 import { Type } from "class-transformer";
-import { BranchStatus, BranchType, DayOfWeek } from "../constants/constant";
+import { BranchStatus, BranchType, City, CitySlug, DayOfWeek } from "../constants/constant";
 
 class CoordinatesDto {
     @IsNumber()
@@ -19,10 +19,14 @@ class AddressDetailDto {
     @ApiProperty({ example: '123 Main St' })
     street: string;
 
-    @IsNotEmpty()
-    @IsString()
-    @ApiProperty({ example: 'Dubai' })
-    city: string;
+    @IsEnum(City)
+    @ApiProperty({ enum: City, example: City.DUBAI })
+    city: City;
+
+    @IsOptional()
+    @IsEnum(CitySlug)
+    @ApiPropertyOptional({ enum: CitySlug, example: CitySlug.DUBAI })
+    citySlug?: CitySlug;
 
     @IsOptional()
     @IsString()

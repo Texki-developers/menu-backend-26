@@ -1,11 +1,11 @@
 import { NestFactory } from "@nestjs/core";
 import { MigrationsModule } from "./migrations.module";
-import { UpdateStatusMigration } from "./update-status.migration";
+import { AddCitySlugMigration } from "./add-city-slug.migration";
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(MigrationsModule);
 
-  const migration = app.get(UpdateStatusMigration);
+  const migration = app.get(AddCitySlugMigration);
 
   await migration.run();
 
