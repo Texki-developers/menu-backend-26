@@ -110,6 +110,7 @@ export class BranchService {
             
             const headers = ['Name', 'Email', 'Phone', 'Branch Type', 'City', 'Street', 'Status', 'Created At'];
             const rows = branches.map(branch => {
+                console.log("🚀 ~ BranchService ~ downloadBranchesCsv ~ branch:", branch)
                 return [
                     branch.name,
                     branch.email || '',
@@ -118,7 +119,7 @@ export class BranchService {
                     branch.address_detail?.city || '',
                     branch.address_detail?.street || '',
                     branch.status || '',
-                    (branch as any).created_at ? new Date((branch as any).created_at).toLocaleString() : ''
+                    (branch as any).created_at ? new Date((branch as any).created_at).toLocaleString() : (branch as any).createdAt ? new Date((branch as any).createdAt).toLocaleString() : ''
                 ];
             });
 

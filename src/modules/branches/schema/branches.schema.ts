@@ -83,6 +83,9 @@ export class Branch extends Document {
 
     @Prop({default:BranchStatus.ACTIVE})
     status:BranchStatus;
+
+    created_at: Date;
+    updated_at: Date;
 }
 
 export const BranchSchema = SchemaFactory.createForClass(Branch);
