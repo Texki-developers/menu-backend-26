@@ -20,7 +20,8 @@ export class UpdateStatusMigration {
                         status: { $toLower: "$status" },
                     },
                 },
-            ]
+            ],
+            { updatePipeline: true } as any
         )
         this.logger.log(`Migration completed. Updated ${result.modifiedCount} documents.`);
     }
