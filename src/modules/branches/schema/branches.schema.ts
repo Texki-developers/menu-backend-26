@@ -11,9 +11,6 @@ export class Branch extends Document {
     @Prop({required:true,index:true})
     name:string;
     
-    @Prop({required:true})
-    address:string;
-
     @Prop({required:true,unique:true,index:true})
     phone:string;
 
