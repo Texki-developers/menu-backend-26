@@ -7,6 +7,7 @@ import { SystemModule } from './modules/system/system.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { BranchesModule } from './modules/branches/branches.module';
 import { MigrationsModule } from './migrations/migrations.module';
+import { CategoryModule } from './modules/category/category.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { MigrationsModule } from './migrations/migrations.module';
     SystemModule,
     BranchesModule,
     MigrationsModule,
+    CategoryModule,
   ],
   controllers: [],
   providers: [],
