@@ -1,4 +1,5 @@
-import { Body, Controller, Post, HttpCode, HttpStatus, Get, Query, Delete, Param, Patch } from '@nestjs/common';
+import { Body, Controller, Post, HttpCode, HttpStatus, Get, Query, Delete, Param, Patch, Res } from '@nestjs/common';
+import * as express from 'express';
 import { BranchService } from '../services/branches.service';
 import { CreateBranchDto } from '../dto/create-branches.dto';
 import { UpdateBranchDto } from '../dto/update-branches.dto';
@@ -11,6 +12,14 @@ export class BranchesController {
     constructor(
         private readonly branchService: BranchService,
     ){}
+
+    @Get('download')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({summary:'Download branches as CSV',description:'Download all branches and their details as a CSV file'})
+    @ApiResponse({status:HttpStatus.OK, description: 'CSV file download initiates'})
+    async downloadBranchesCsv(@Res() res: any){
+        return this.branchService.downloadBranchesCsv(res);
+    }
 
     @Get('get-all')
     @HttpCode(HttpStatus.OK)

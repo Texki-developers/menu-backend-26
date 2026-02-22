@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import * as express from 'express';
 import { InjectModel } from '@nestjs/mongoose';
 import { Branch } from '../schema/branches.schema';
 import { Model } from 'mongoose';
@@ -99,6 +100,38 @@ export class BranchService {
             };
         } catch (error) {
             handleDbError(error, 'getting the branches');
+            throw error;
+        }
+    }
+
+    async downloadBranchesCsv(res: any) {
+        try {
+            const branches = await this.branchModel.find().lean();
+            
+            const headers = ['Name', 'Email', 'Phone', 'Branch Type', 'City', 'Street', 'Status', 'Created At'];
+            const rows = branches.map(branch => {
+                return [
+                    branch.name,
+                    branch.email || '',
+                    branch.phone || '',
+                    branch.branch_type || '',
+                    branch.address_detail?.city || '',
+                    branch.address_detail?.street || '',
+                    branch.status || '',
+                    (branch as any).created_at ? new Date((branch as any).created_at).toLocaleString() : ''
+                ];
+            });
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+            ].join('\n');
+
+            res.setHeader('Content-Type', 'text/csv');
+            res.setHeader('Content-Disposition', 'attachment; filename=branches.csv');
+            return res.status(200).send(csvContent);
+        } catch (error) {
+            handleDbError(error, 'downloading branches csv');
             throw error;
         }
     }
