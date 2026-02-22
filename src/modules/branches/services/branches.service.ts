@@ -97,9 +97,22 @@ export class BranchService {
                     limit: limitNum,
                 }
             };
-
         } catch (error) {
             handleDbError(error, 'getting the branches');
+            throw error;
+        }
+    }
+
+    async getBranchById(id: string): Promise<Branch> {
+        try {
+            const branch = await this.branchModel.findById(id);
+            if (!branch) {
+                throw new NotFoundException('Branch not found');
+            }
+            return branch;
+        } catch (error) {
+            if (error instanceof NotFoundException) throw error;
+            handleDbError(error, 'getting the branch by id');
             throw error;
         }
     }

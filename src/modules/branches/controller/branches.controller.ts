@@ -20,6 +20,14 @@ export class BranchesController {
         return this.branchService.getAllBranches(getAllBranchesDto);
     }
 
+    @Get(':id')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({summary:'Get a branch',description:'Get a branch by ID'})
+    @ApiResponse({status:HttpStatus.OK,type:Branch})
+    async getBranchById(@Param('id') id: string){
+        return this.branchService.getBranchById(id);
+    }
+
     @Post('create')
     @HttpCode(HttpStatus.CREATED)
     @ApiOperation({summary:'Create a new branch',description:'Create a new branch'})
