@@ -1,4 +1,4 @@
-import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post, HttpCode, HttpStatus, Get } from '@nestjs/common';
 import { CategoryService } from '../services/category.service';
 import { CreateCategoryDto } from '../dto/create-category.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -10,6 +10,14 @@ export class CategoryController {
     constructor(
         private readonly categoryService: CategoryService,
     ){}
+
+    @Get('get-all')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Get all categories', description: 'Retrieve all menu categories' })
+    @ApiResponse({ status: HttpStatus.OK, type: [Category] })
+    async getAllCategories() {
+        return this.categoryService.getAllCategories();
+    }
 
     @Post('create')
     @HttpCode(HttpStatus.CREATED)

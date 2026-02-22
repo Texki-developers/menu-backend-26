@@ -8,11 +8,6 @@ export class CreateCategoryDto {
     @ApiProperty({ example: 'Appetizers' })
     name: string;
 
-    @IsNotEmpty()
-    @IsMongoId()
-    @ApiProperty({ example: '69948af4435dccf179e3e939' })
-    organization_id: string;
-
     @IsOptional()
     @IsEnum(CategoryIcon)
     @ApiPropertyOptional({ enum: CategoryIcon, example: CategoryIcon.UTENSILS_CROSSED, default: CategoryIcon.UTENSILS_CROSSED })

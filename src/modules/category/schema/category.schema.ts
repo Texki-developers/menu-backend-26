@@ -7,11 +7,8 @@ import { CategoryIcon } from "../constants/constant";
     updatedAt: 'updated_at'
 }})
 export class Category extends Document {
-    @Prop({ required: true, index: true })
+    @Prop({ required: true, index: true }) 
     name: string;
-
-    @Prop({ type: Types.ObjectId, ref: 'organizations', required: true, index: true })
-    organization_id: Types.ObjectId;
 
     @Prop({ type: String, enum: CategoryIcon, default: CategoryIcon.UTENSILS_CROSSED })
     icon: CategoryIcon;

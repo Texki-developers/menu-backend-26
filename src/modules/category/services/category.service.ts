@@ -20,4 +20,13 @@ export class CategoryService {
             throw error;
         }
     }
+
+    async getAllCategories(): Promise<Category[]> {
+        try {
+            return await this.categoryModel.find().lean();
+        } catch (error) {
+            handleDbError(error, 'getting all categories');
+            throw error;
+        }
+    }
 }
