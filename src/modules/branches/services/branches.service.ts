@@ -4,6 +4,7 @@ import { Branch } from '../schema/branches.schema';
 import { Model } from 'mongoose';
 import * as mongoose from 'mongoose';
 import { CreateBranchDto } from '../dto/create-branches.dto';
+import { UpdateBranchDto } from '../dto/update-branches.dto';
 import { handleDbError, escapeRegex } from '../../../common/utils';
 import { GetAllBranchesDto, SortOrder } from '../dto/get-all-branches.dto';
 
@@ -109,6 +110,26 @@ export class BranchService {
         } catch (error) {
             handleDbError(error, 'creating the branch');
             throw error; // This line is technically unreachable as handleDbError throws
+        }
+    }
+
+    async updateBranch(id: string, updateData: UpdateBranchDto): Promise<Branch> {
+        try {
+            const updatedBranch = await this.branchModel.findByIdAndUpdate(
+                id,
+                { $set: updateData },
+                { new: true, runValidators: true }
+            );
+
+            if (!updatedBranch) {
+                throw new NotFoundException('Branch not found');
+            }
+
+            return updatedBranch;
+        } catch (error) {
+            if (error instanceof NotFoundException) throw error;
+            handleDbError(error, 'updating the branch');
+            throw error;
         }
     }
 

@@ -1,6 +1,7 @@
-import { Body, Controller, Post, HttpCode, HttpStatus, Get, Query, Delete, Param } from '@nestjs/common';
+import { Body, Controller, Post, HttpCode, HttpStatus, Get, Query, Delete, Param, Patch } from '@nestjs/common';
 import { BranchService } from '../services/branches.service';
 import { CreateBranchDto } from '../dto/create-branches.dto';
+import { UpdateBranchDto } from '../dto/update-branches.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Branch } from '../schema/branches.schema';
 import { GetAllBranchesDto } from '../dto/get-all-branches.dto';
@@ -25,6 +26,14 @@ export class BranchesController {
     @ApiResponse({status:HttpStatus.CREATED,type:Branch})
     async createBranch(@Body() createBranchDto: CreateBranchDto){
         return this.branchService.createBranch(createBranchDto);
+    }
+
+    @Patch(':id')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({summary:'Update a branch',description:'Update a branch by ID'})
+    @ApiResponse({status:HttpStatus.OK, description: 'Branch updated successfully', type: Branch})
+    async editBranch(@Param('id') id: string, @Body() updateBranchDto: UpdateBranchDto){
+        return this.branchService.updateBranch(id, updateBranchDto);
     }
 
     @Delete(':id')

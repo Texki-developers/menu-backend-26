@@ -13,6 +13,11 @@ export function handleDbError(error: any, context: string) {
         throw new BadRequestException(error.message);
     }
 
+    // Mongoose Cast Error (e.g., invalid ObjectId)
+    if (error.name === 'CastError') {
+        throw new BadRequestException(`Invalid ${error.path}: ${error.value}. Please provide a valid ID.`);
+    }
+
     // Mongoose Duplicate Key Error (Code 11000)
     if (error.code === 11000) {
         const field = Object.keys(error.keyPattern || {})[0];
