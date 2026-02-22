@@ -1,11 +1,19 @@
 import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
-import { ConfigService } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import * as Joi from 'joi';
 import { UpdateStatusMigration } from "./update-status.migration";
-import { Branch, BranchSchema } from "src/modules/branches/schema/branches.schema";
+import { Branch, BranchSchema } from "../modules/branches/schema/branches.schema";
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env.development',
+      validationSchema: Joi.object({
+        MONGO_URI: Joi.string().required(),
+      }),
+    }),
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
