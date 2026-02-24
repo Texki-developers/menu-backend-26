@@ -6,7 +6,7 @@ import { Model } from 'mongoose';
 import * as mongoose from 'mongoose';
 import { CreateBranchDto } from '../dto/create-branches.dto';
 import { UpdateBranchDto } from '../dto/update-branches.dto';
-import { handleDbError, escapeRegex } from '../../../common/utils';
+import { handleDbError, escapeRegex, paginate } from '../../../common/utils';
 import { GetAllBranchesDto, SortOrder } from '../dto/get-all-branches.dto';
 import { CityToSlugMap } from '../constants/constant';
 
@@ -28,10 +28,6 @@ export class BranchService {
                 sortOrder = SortOrder.DESC 
             } = getAllBranchesDto;
 
-            const pageNum = Number(page);
-            const limitNum = Number(limit);
-            const skip = (pageNum - 1) * limitNum;
-
             // 1. Build Filter Objects
             const baseFilter: Record<string, any> = {};
             if (organization_id) {
@@ -52,52 +48,21 @@ export class BranchService {
                 ];
             }
 
-            // 2. Execute Aggregation (Single DB Round-trip)
-            const [result] = await this.branchModel.aggregate([
-                { $match: baseFilter },
-                {
-                    $facet: {
-                        data: [
-                            { $match: searchFilter },
-                            { $sort: { [sortBy]: sortOrder === SortOrder.DESC ? -1 : 1 } },
-                            { $skip: skip },
-                            { $limit: limitNum }
-                        ],
-                        total: [
-                            { $match: searchFilter },
-                            { $count: 'count' }
-                        ],
-                        totalWithoutFilter: [
-                            { $count: 'count' }
-                        ],
-                        totalActive: [
-                            { $match: { status: 'active' } },
-                            { $count: 'count' }
-                        ]
-                    }
-                },
-                {
-                    $project: {
-                        data: 1,
-                        total: { $ifNull: [{ $arrayElemAt: ['$total.count', 0] }, 0] },
-                        totalActive: { $ifNull: [{ $arrayElemAt: ['$totalActive.count', 0] }, 0] },
-                        totalWithoutFilter: { $ifNull: [{ $arrayElemAt: ['$totalWithoutFilter.count', 0] }, 0] }
-                    }
+            // 2. Execute Paginated Search
+            return await paginate(this.branchModel, {
+                page,
+                limit,
+                sortBy,
+                sortOrder: sortOrder as any,
+                baseFilter,
+                searchFilter,
+                extraFacets: {
+                    totalActive: [
+                        { $match: { status: 'active' } },
+                        { $count: 'count' }
+                    ]
                 }
-            ]);
-
-            // 3. Return Standard paginated response
-            return {
-                data: result.data,
-                meta: {
-                    total: result.total,
-                    totalPages: Math.ceil(result.total / limitNum),
-                    totalActive: result.totalActive,
-                    totalWithoutFilter: result.totalWithoutFilter,
-                    page: pageNum,
-                    limit: limitNum,
-                }
-            };
+            });
         } catch (error) {
             handleDbError(error, 'getting the branches');
             throw error;

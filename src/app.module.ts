@@ -8,6 +8,7 @@ import { OrganizationsModule } from './modules/organizations/organizations.modul
 import { BranchesModule } from './modules/branches/branches.module';
 import { MigrationsModule } from './migrations/migrations.module';
 import { CategoryModule } from './modules/category/category.module';
+import { MenuModule } from './modules/menu/menu.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { CategoryModule } from './modules/category/category.module';
     BranchesModule,
     MigrationsModule,
     CategoryModule,
+    MenuModule,
   ],
   controllers: [],
   providers: [],
