@@ -9,6 +9,8 @@ import { BranchesModule } from './modules/branches/branches.module';
 import { MigrationsModule } from './migrations/migrations.module';
 import { CategoryModule } from './modules/category/category.module';
 import { MenuModule } from './modules/menu/menu.module';
+import { ProductsModule } from './modules/products/products.module';
+import { MenuItemsModule } from './modules/menu-items/menu-items.module';
 
 @Module({
   imports: [
@@ -47,6 +49,8 @@ import { MenuModule } from './modules/menu/menu.module';
     MigrationsModule,
     CategoryModule,
     MenuModule,
+    ProductsModule,
+    MenuItemsModule,
   ],
   controllers: [],
   providers: [],
