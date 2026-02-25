@@ -16,7 +16,7 @@ export class Category extends Document {
     @Prop({ type: Boolean, default: true })
     isActive: boolean;
 
-    @Prop({ type: Types.ObjectId, ref: 'menus', required: false })
+    @Prop({ type: Types.ObjectId, ref: 'Menu', required: false })
     menuId: Types.ObjectId;
 
     @Prop({ type: Number, default: 0 })

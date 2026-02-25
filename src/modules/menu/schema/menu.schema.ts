@@ -2,10 +2,15 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, Types } from "mongoose";
 import { MenuStatus, MenuType } from "../constants/constant";
 
-@Schema({ collection: 'menus', timestamps: {
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
-}})
+@Schema({ 
+    collection: 'menus', 
+    timestamps: {
+        createdAt: 'created_at',
+        updatedAt: 'updated_at'
+    },
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+})
 export class Menu extends Document {
     @Prop({ required: true, index: true }) 
     name: string;
@@ -42,3 +47,9 @@ export class Menu extends Document {
 }
 
 export const MenuSchema = SchemaFactory.createForClass(Menu);
+
+MenuSchema.virtual('categories', {
+    ref: 'Category',
+    localField: '_id',
+    foreignField: 'menuId'
+});

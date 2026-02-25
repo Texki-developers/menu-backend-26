@@ -1,18 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Menu } from '../schema/menu.schema';
 import { CreateMenuDto } from '../dto/create-menu.dto';
 import { UpdateMenuDto } from '../dto/update-menu.dto';
 import { GetAllMenusDto } from '../dto/get-all-menus.dto';
 import { SortOrder } from '../../../common/interfaces/pagination.interface';
 import { handleDbError, escapeRegex, paginate } from '../../../common/utils';
-import { Types } from 'mongoose';
+import { Category } from '../../category/schema/category.schema';
 
 @Injectable()
 export class MenuService {
     constructor(
         @InjectModel(Menu.name) private menuModel: Model<Menu>,
+        @InjectModel(Category.name) private categoryModel: Model<Category>,
     ){}
 
     async createMenu(createMenuDto: CreateMenuDto): Promise<Menu> {
@@ -77,13 +78,37 @@ export class MenuService {
         }
     }
 
-    async getMenuById(id: string): Promise<Menu> {
+    async getMenuById(id: string): Promise<any> {
         try {
-            const menu = await this.menuModel.findById(id).lean();
-            if (!menu) {
+            const results = await this.menuModel.aggregate([
+                {
+                    $match: {
+                        _id: new Types.ObjectId(id)
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'categories',
+                        let: { menu_id: '$_id' },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $eq: [{ $toString: '$menuId' }, { $toString: '$$menu_id' }]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'categories'
+                    }
+                }
+            ]);
+
+            if (!results || results.length === 0) {
                 throw new NotFoundException('Menu not found');
             }
-            return menu as any; // Cast due to lean()
+
+            return results[0];
         } catch (error) {
             if (error instanceof NotFoundException) throw error;
             handleDbError(error, 'getting the menu by id');
