@@ -36,12 +36,6 @@ export class Menu extends Document {
     @Prop({ type: Types.ObjectId, ref: 'organizations', required: true })
     organization_id: Types.ObjectId;
 
-    @Prop({ type: Number, default: 0 })
-    categoryCount: number;
-
-    @Prop({ type: Number, default: 0 })
-    itemCount: number;
-
     created_at: Date;
     updated_at: Date;
 }

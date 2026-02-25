@@ -16,11 +16,11 @@ export class Category extends Document {
     @Prop({ type: Boolean, default: true })
     isActive: boolean;
 
+    @Prop({ type: Types.ObjectId, ref: 'organizations', required: true })
+    organization_id: Types.ObjectId;
+
     @Prop({ type: Types.ObjectId, ref: 'Menu', required: false })
     menuId: Types.ObjectId;
-
-    @Prop({ type: Number, default: 0 })
-    itemCount: number;
 
     created_at: Date;
     updated_at: Date;
