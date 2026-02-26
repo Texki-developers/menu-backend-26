@@ -40,16 +40,10 @@ export class ProductService {
         sortBy = 'created_at',
         sortOrder = SortOrder.DESC,
       } = dto; 
-      console.log("🚀 ~ ProductService ~ getAllProducts ~ dto:", dto)
       const baseFilter: Record<string, any> = { is_deleted: { $ne: true } };
       if (organization_id) {
-        try {
-          baseFilter.organization_id = new Types.ObjectId(organization_id);
-        } catch (error) {
           baseFilter.organization_id = organization_id;
-        }
       }
-
       const searchFilter: Record<string, any> = {};
       if (type) searchFilter.type = type;
       if (is_active !== undefined) searchFilter.is_active = is_active;
