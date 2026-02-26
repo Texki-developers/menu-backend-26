@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsMongoId, IsOptional, IsString } from 'class-validator';
 import { SortOrder } from '../../../common/interfaces/pagination.interface';
+import { Transform } from 'class-transformer';
 
 export class GetAllMenuItemsDto {
   @IsOptional()
@@ -34,14 +35,17 @@ export class GetAllMenuItemsDto {
   branch_id?: string;
 
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   @ApiPropertyOptional({ example: true })
   is_available?: boolean;
 
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   @ApiPropertyOptional({ example: false })
   is_featured?: boolean;
+
 
   @IsOptional()
   @IsString()

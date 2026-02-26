@@ -41,10 +41,22 @@ export class MenuItemService {
         sortBy = 'sort_order',
         sortOrder = SortOrder.ASC,
       } = dto;
-
+      console.log("🚀 ~ MenuItemService ~ getAllMenuItems ~ dto:", dto)
       const baseFilter: Record<string, any> = {};
-      if (organization_id) baseFilter.organization_id = new Types.ObjectId(organization_id);
-      if (branch_id) baseFilter.branch_id = new Types.ObjectId(branch_id);
+      if (organization_id) {
+        try {
+          baseFilter.organization_id = new Types.ObjectId(organization_id);
+        } catch (error) {
+          baseFilter.organization_id = organization_id;
+        }
+      }
+      if (branch_id) {
+        try {
+          baseFilter.branch_id = new Types.ObjectId(branch_id);
+        } catch (error) {
+          baseFilter.branch_id = branch_id;
+        }
+      }
 
       const searchFilter: Record<string, any> = {};
       if (menu_id) searchFilter.menu_id = new Types.ObjectId(menu_id);

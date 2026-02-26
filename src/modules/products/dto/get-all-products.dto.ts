@@ -2,6 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
 import { ProductType } from '../constants/constant';
 import { SortOrder } from '../../../common/interfaces/pagination.interface';
+import { Transform } from 'class-transformer';
 
 export class GetAllProductsDto {
   @IsOptional()
@@ -30,14 +31,17 @@ export class GetAllProductsDto {
   type?: ProductType;
 
   @IsOptional()
+  @Transform(({ value }) => value === 'true' ? true : value === 'false' ? false : undefined)
   @IsBoolean()
   @ApiPropertyOptional({ example: true })
   is_active?: boolean;
 
   @IsOptional()
+  @Transform(({ value }) => value === 'true' ? true : value === 'false' ? false : undefined)
   @IsBoolean()
   @ApiPropertyOptional({ example: false })
   is_featured?: boolean;
+
 
   @IsOptional()
   @IsString()
