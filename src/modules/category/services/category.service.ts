@@ -31,6 +31,20 @@ export class CategoryService {
         }
     }
 
+    async getCategoryById(id: string): Promise<Category> {
+        try {
+            const category = await this.categoryModel.findById(id).lean();
+            if (!category) {
+                throw new NotFoundException(`Category with ID ${id} not found`);
+            }
+            return category as Category;
+        } catch (error) {
+            if (error instanceof NotFoundException) throw error;
+            handleDbError(error, `getting category with ID ${id}`);
+            throw error;
+        }
+    }
+
     async updateCategory(id: string, updateData: UpdateCategoryDto): Promise<Category> {
         try {
             const updatedCategory = await this.categoryModel.findByIdAndUpdate(

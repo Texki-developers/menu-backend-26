@@ -20,6 +20,15 @@ export class CategoryController {
         return this.categoryService.getAllCategories();
     }
 
+    @Get(':id')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Get a single category', description: 'Retrieve a category by its ID' })
+    @ApiResponse({ status: HttpStatus.OK, type: Category })
+    @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Category not found' })
+    async getCategoryById(@Param('id') id: string) {
+        return this.categoryService.getCategoryById(id);
+    }
+
     @Post('create')
     @HttpCode(HttpStatus.CREATED)
     @ApiOperation({ summary: 'Create a new category', description: 'Create a new category for the menu' })
