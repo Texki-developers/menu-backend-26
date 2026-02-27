@@ -32,8 +32,19 @@ export class MenuItemController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get all menu items (flat list)', description: 'Retrieve all menu items without pagination. Optional filters: menuId, categoryId' })
+  @ApiResponse({ status: HttpStatus.OK, type: [MenuItem] })
+  async getFlatMenuItems(
+    @Query('menuId') menuId?: string,
+    @Query('categoryId') categoryId?: string,
+  ) {
+    return this.menuItemService.getFlatMenuItems(menuId, categoryId);
+  }
+
+  @Get('get-all')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'List menu items',
+    summary: 'List menu items (paginated)',
     description: 'Filter by menu_id, category_id, branch_id etc.',
   })
   async getAllMenuItems(@Query() dto: GetAllMenuItemsDto) {

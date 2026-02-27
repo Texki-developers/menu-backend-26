@@ -27,6 +27,22 @@ export class MenuItemService {
     }
   }
 
+  async getFlatMenuItems(menu_id?: string, category_id?: string): Promise<MenuItem[]> {
+    try {
+      const filter: Record<string, any> = {};
+      if (menu_id) filter.menu_id = new Types.ObjectId(menu_id);
+      if (category_id) filter.category_id = new Types.ObjectId(category_id);
+
+      return await this.menuItemModel
+        .find(filter)
+        .populate('product_id', 'name slug type spice_level calories media allergens tags')
+        .lean();
+    } catch (error) {
+      handleDbError(error, 'getting flat menu items');
+      throw error;
+    }
+  }
+
   async getAllMenuItems(dto: GetAllMenuItemsDto) {
     try {
       const {
