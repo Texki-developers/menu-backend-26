@@ -112,8 +112,8 @@ export class Product extends Document {
   is_deleted: boolean;
 
   // ── Tenant ────────────────────────────────────────────────────
-  @Prop({ type: Types.ObjectId, required: true })
-  organization_id: Types.ObjectId;
+  @Prop({ type: String, required: true })
+  organization_id: string;
 
   created_at: Date;
   updated_at: Date;

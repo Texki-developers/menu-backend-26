@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsMongoId, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
 import { SortOrder } from '../../../common/interfaces/pagination.interface';
 import { Transform } from 'class-transformer';
 
@@ -15,22 +15,22 @@ export class GetAllMenuItemsDto {
   limit?: string;
 
   @IsOptional()
-  @IsMongoId()
+  @IsString()
   @ApiPropertyOptional({ example: '65d8f7a9e1b2c3d4e5f6a7b8' })
   menu_id?: string;
 
   @IsOptional()
-  @IsMongoId()
+  @IsString()
   @ApiPropertyOptional({ example: '65d8f7a9e1b2c3d4e5f6a7b8' })
   category_id?: string;
 
   @IsOptional()
-  @IsMongoId()
+  @IsString()
   @ApiPropertyOptional({ example: '65d8f7a9e1b2c3d4e5f6a7b8' })
   organization_id?: string;
 
   @IsOptional()
-  @IsMongoId()
+  @IsString()
   @ApiPropertyOptional({ example: '65d8f7a9e1b2c3d4e5f6a7b8' })
   branch_id?: string;
 

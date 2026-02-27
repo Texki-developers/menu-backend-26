@@ -2,7 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
   IsBoolean,
-  IsMongoId,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -11,27 +10,28 @@ import {
 } from 'class-validator';
 
 export class CreateMenuItemDto {
-  @IsMongoId()
+  @IsNotEmpty()
+  @IsString()
   @ApiProperty({ example: '65d8f7a9e1b2c3d4e5f6a7b8', description: 'Reference to Product._id' })
   product_id: string;
 
   @IsNotEmpty()
-  @IsMongoId()
+  @IsString()
   @ApiProperty({ example: '65d8f7a9e1b2c3d4e5f6a7b8', description: 'Reference to Menu._id' })
   menu_id: string;
 
   @IsNotEmpty()
-  @IsMongoId()
+  @IsString()
   @ApiProperty({ example: '65d8f7a9e1b2c3d4e5f6a7b8', description: 'Reference to Category._id' })
   category_id: string;
 
   @IsNotEmpty()
-  @IsMongoId()
+  @IsString()
   @ApiProperty({ example: '65d8f7a9e1b2c3d4e5f6a7b8' })
   organization_id: string;
 
   @IsNotEmpty()
-  @IsMongoId()
+  @IsString()
   @ApiProperty({ example: '65d8f7a9e1b2c3d4e5f6a7b8' })
   branch_id: string;
 

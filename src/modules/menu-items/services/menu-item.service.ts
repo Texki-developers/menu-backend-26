@@ -27,11 +27,18 @@ export class MenuItemService {
     }
   }
 
-  async getFlatMenuItems(menu_id?: string, category_id?: string): Promise<MenuItem[]> {
+  async getFlatMenuItems(
+    menu_id?: string,
+    category_id?: string,
+    organization_id?: string,
+    branch_id?: string,
+  ): Promise<MenuItem[]> {
     try {
       const filter: Record<string, any> = {};
-      if (menu_id) filter.menu_id = new Types.ObjectId(menu_id);
-      if (category_id) filter.category_id = new Types.ObjectId(category_id);
+      if (menu_id) filter.menu_id = menu_id;
+      if (category_id) filter.category_id = category_id;
+      if (organization_id) filter.organization_id = organization_id;
+      if (branch_id) filter.branch_id = branch_id;
 
       return await this.menuItemModel
         .find(filter)
@@ -60,25 +67,18 @@ export class MenuItemService {
       console.log("🚀 ~ MenuItemService ~ getAllMenuItems ~ dto:", dto)
       const baseFilter: Record<string, any> = {};
       if (organization_id) {
-        try {
-          baseFilter.organization_id = new Types.ObjectId(organization_id);
-        } catch (error) {
-          baseFilter.organization_id = organization_id;
-        }
+        baseFilter.organization_id = organization_id;
       }
       if (branch_id) {
-        try {
-          baseFilter.branch_id = new Types.ObjectId(branch_id);
-        } catch (error) {
-          baseFilter.branch_id = branch_id;
-        }
+        baseFilter.branch_id = branch_id;
       }
 
       const searchFilter: Record<string, any> = {};
-      if (menu_id) searchFilter.menu_id = new Types.ObjectId(menu_id);
-      if (category_id) searchFilter.category_id = new Types.ObjectId(category_id);
+      if (menu_id) searchFilter.menu_id = menu_id;
+      if (category_id) searchFilter.category_id = category_id;
       if (is_available !== undefined) searchFilter.is_available = is_available;
       if (is_featured !== undefined) searchFilter.is_featured = is_featured;
+
 
       return await paginate(this.menuItemModel, {
         page,

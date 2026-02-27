@@ -14,20 +14,21 @@ export class MenuItem extends Document {
   menu_item_uuid: string;
 
   // ── References ────────────────────────────────────────────────
-  @Prop({ type: Types.ObjectId, ref: 'Product', required: true })
-  product_id: Types.ObjectId;
+  @Prop({ type: String, ref: 'Product', required: true })
+  product_id: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Menu', required: true })
-  menu_id: Types.ObjectId;
+  @Prop({ type: String, ref: 'Menu', required: true })
+  menu_id: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Category', required: true })
-  category_id: Types.ObjectId;
+  @Prop({ type: String, ref: 'Category', required: true })
+  category_id: string;
 
-  @Prop({ type: Types.ObjectId, required: true })
-  organization_id: Types.ObjectId;
+  @Prop({ type: String, required: true })
+  organization_id: string;
 
-  @Prop({ type: Types.ObjectId, required: true })
-  branch_id: Types.ObjectId;
+  @Prop({ type: String, required: true })
+  branch_id: string;
+
 
   // ── Pricing ───────────────────────────────────────────────────
   /** Base (cost) price carried over from Product for reference. */
