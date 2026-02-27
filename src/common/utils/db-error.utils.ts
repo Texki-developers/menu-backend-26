@@ -20,8 +20,11 @@ export function handleDbError(error: any, context: string) {
 
     // Mongoose Duplicate Key Error (Code 11000)
     if (error.code === 11000) {
-        const field = Object.keys(error.keyPattern || {})[0];
-        throw new BadRequestException(`${field || 'Field'} already exists. Please use a unique value.`);
+        const fields = Object.keys(error.keyPattern || {});
+        const fieldLabel = fields.length > 1
+            ? `Combination of (${fields.join(', ')})`
+            : (fields[0] || 'Field');
+        throw new BadRequestException(`${fieldLabel} already exists. Please use a unique value.`);
     }
 
     // Fallback for unexpected errors
