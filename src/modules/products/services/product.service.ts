@@ -27,6 +27,64 @@ export class ProductService {
     }
   }
 
+  async downloadProductsCsv(res: any) {
+    try {
+      const products = await this.productModel
+        .find({ is_deleted: { $ne: true } })
+        .lean();
+
+      const headers = [
+        'Product UUID',
+        'Name',
+        'Slug',
+        'SKU',
+        'Type',
+        'Spice Level',
+        'Is Alcohol',
+        'Is Featured',
+        'Base Price',
+        'Tax Rate (%)',
+        'Calories (kcal)',
+        'Tags',
+        'Allergens',
+        'Is Active',
+        'Created At',
+      ];
+
+      const rows = products.map((p) => [
+        p.product_uuid || '',
+        p.name || '',
+        p.slug || '',
+        p.sku || '',
+        p.type || '',
+        p.spice_level || '',
+        p.is_alcohol ? 'Yes' : 'No',
+        p.is_featured ? 'Yes' : 'No',
+        p.base_price ?? '',
+        p.base_tax_rate ?? '',
+        p.calories ?? '',
+        (p.tags || []).join('; '),
+        (p.allergens || []).join('; '),
+        p.is_active ? 'Active' : 'Inactive',
+        p.created_at ? new Date(p.created_at).toLocaleString() : '',
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map((row) =>
+          row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','),
+        ),
+      ].join('\n');
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=products.csv');
+      return res.status(200).send(csvContent);
+    } catch (error) {
+      handleDbError(error, 'downloading products csv');
+      throw error;
+    }
+  }
+
   async getAllProducts(dto: GetAllProductsDto) {
     try {
       const {

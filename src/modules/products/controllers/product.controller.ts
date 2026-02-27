@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  Res,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProductService } from '../services/product.service';
@@ -35,6 +36,14 @@ export class ProductController {
   @ApiOperation({ summary: 'List products', description: 'Paginated list with optional filters' })
   async getAllProducts(@Query() dto: GetAllProductsDto) {
     return this.productService.getAllProducts(dto);
+  }
+
+  @Get('download')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Download products as CSV', description: 'Download all active products as a CSV file' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'CSV file download initiates' })
+  async downloadProductsCsv(@Res() res: any) {
+    return this.productService.downloadProductsCsv(res);
   }
 
   @Get(':id')
