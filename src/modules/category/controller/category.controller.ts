@@ -35,7 +35,7 @@ export class CategoryController {
     @ApiResponse({ status: HttpStatus.CREATED, type: Category })
     async createCategory(@Body() createCategoryDto: CreateCategoryDto) {
         return this.categoryService.createCategory(createCategoryDto);
-    }
+    } 
 
     @Patch(':id')
     @HttpCode(HttpStatus.OK)
