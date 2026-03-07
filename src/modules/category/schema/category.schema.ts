@@ -16,11 +16,14 @@ export class Category extends Document {
     @Prop({ type: Boolean, default: true })
     isActive: boolean;
 
-    @Prop({ type: Types.ObjectId, ref: 'organizations', required: true })
-    organization_id: Types.ObjectId;
+    @Prop({ type: String, required: true })
+    organization_id: string;
 
-    @Prop({ type: Types.ObjectId, ref: 'Menu', required: false })
-    menuId: Types.ObjectId;
+    @Prop({ type: String, required: false })
+    branch_id: string;
+
+    @Prop({ type: String, required: false })
+    menuId: string;
 
     created_at: Date;
     updated_at: Date;

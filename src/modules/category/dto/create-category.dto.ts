@@ -19,12 +19,17 @@ export class CreateCategoryDto {
     isActive?: boolean;
 
     @IsNotEmpty()
-    @IsMongoId()
+    @IsString()
     @ApiProperty({ example: '65d8f7a9e1b2c3d4e5f6a7b8' })
     organization_id: string;
 
     @IsOptional()
-    @IsMongoId()
+    @IsString()
+    @ApiPropertyOptional({ example: '65d8f7a9e1b2c3d4e5f6a7b8' })
+    branch_id?: string;
+
+    @IsOptional()
+    @IsString()
     @ApiPropertyOptional({ example: '65d8f7a9e1b2c3d4e5f6a7b8' })
     menuId?: string;
 

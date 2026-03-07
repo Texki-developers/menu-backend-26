@@ -57,12 +57,12 @@ export class CreateStaffDto {
   role: StaffRole;
 
   @ApiProperty({ example: '60d5ecb5b48777001f7c2231' })
-  @IsMongoId()
+  @IsString()
   @IsNotEmpty()
   organization_id: string;
 
   @ApiProperty({ example: '60d5ecb5b48777001f7c2232' })
-  @IsMongoId()
+  @IsString()
   @IsNotEmpty()
   branch_id: string;
 

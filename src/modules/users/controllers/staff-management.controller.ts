@@ -1,7 +1,9 @@
-import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus, Get, Query, Param, Patch, Delete } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from '../services/users.service';
 import { CreateStaffDto } from '../dto/create-staff.dto';
+import { GetAllStaffDto } from '../dto/get-all-staff.dto';
+import { UpdateStaffDto } from '../dto/update-staff.dto';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -23,5 +25,41 @@ export class StaffManagementController {
   @ApiResponse({ status: 201, description: 'Staff created successfully' })
   async create(@Body() createStaffDto: CreateStaffDto) {
     return this.usersService.createStaff(createStaffDto);
+  }
+
+  @Get()
+  @Roles(USER_ROLES.ORG_ADMIN, USER_ROLES.BRANCH_ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get all Staff members' })
+  @ApiResponse({ status: 200, description: 'Staff members retrieved successfully' })
+  async listStaff(@Query() query: GetAllStaffDto) {
+    return this.usersService.getAllStaff(query);
+  }
+
+  @Get(':id')
+  @Roles(USER_ROLES.ORG_ADMIN, USER_ROLES.BRANCH_ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get Staff member details' })
+  @ApiResponse({ status: 200, description: 'Staff member details retrieved successfully' })
+  async getDetail(@Param('id') id: string) {
+    return this.usersService.getStaffById(id);
+  }
+
+  @Patch(':id')
+  @Roles(USER_ROLES.ORG_ADMIN, USER_ROLES.BRANCH_ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update Staff member' })
+  @ApiResponse({ status: 200, description: 'Staff member updated successfully' })
+  async update(@Param('id') id: string, @Body() updateStaffDto: UpdateStaffDto) {
+    return this.usersService.updateStaff(id, updateStaffDto);
+  }
+
+  @Delete(':id')
+  @Roles(USER_ROLES.ORG_ADMIN, USER_ROLES.BRANCH_ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete Staff member' })
+  @ApiResponse({ status: 200, description: 'Staff member deleted successfully' })
+  async remove(@Param('id') id: string) {
+    return this.usersService.deleteStaff(id);
   }
 }
