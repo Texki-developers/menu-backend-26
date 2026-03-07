@@ -12,6 +12,9 @@ import { MenuModule } from './modules/menu/menu.module';
 import { ProductsModule } from './modules/products/products.module';
 import { MenuItemsModule } from './modules/menu-items/menu-items.module';
 
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -34,6 +37,10 @@ import { MenuItemsModule } from './modules/menu-items/menu-items.module';
         abortEarly: true,
       }
     }),
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 10,
+    }]),
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
@@ -53,6 +60,6 @@ import { MenuItemsModule } from './modules/menu-items/menu-items.module';
     MenuItemsModule,
   ],
   controllers: [],
-  providers: [],
+
 })
 export class AppModule {}

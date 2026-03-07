@@ -41,6 +41,24 @@ export class AuthService {
     };
   }
 
+  async dashboardLogin(loginDto: LoginDto) {
+    // Try Admin login first (Admin precedence)
+    try {
+      return await this.adminLogin(loginDto);
+    } catch (error) {
+      if (!(error instanceof UnauthorizedException)) {
+        throw error;
+      }
+      // If Admin fails, try Staff login
+      try {
+        return await this.staffLogin(loginDto);
+      } catch (staffError) {
+        // Return generic error to avoid user enumeration
+        throw new UnauthorizedException('Invalid credentials');
+      }
+    }
+  }
+
   async adminLogin(loginDto: LoginDto) {
     const admin = await this.adminModel.findOne({ email: loginDto.email }).select('+password');
     if (!admin || !(await PasswordUtils.compare(loginDto.password, admin.password))) {
@@ -51,11 +69,22 @@ export class AuthService {
       sub: admin._id.toString(),
       email: admin.email,
       role: admin.branch_ids.length > 0 ? USER_ROLES.BRANCH_ADMIN : USER_ROLES.ORG_ADMIN,
-      organization_id: admin.organization_id.toString(),
-      branch_ids: admin.branch_ids.map(id => id.toString()),
+      organizationId: admin.organization_id.toString(),
+      branchIds: admin.branch_ids.map(id => id.toString()),
     };
 
-    return this.generateTokens(payload);
+    const tokens = await this.generateTokens(payload);
+    return {
+      ...tokens,
+      user: {
+        id: admin._id,
+        email: admin.email,
+        fullName: admin.full_name,
+        role: payload.role,
+        organizationId: payload.organizationId,
+        branchIds: payload.branchIds,
+      }
+    };
   }
 
   async adminRegister(registerDto: AdminRegisterDto) {
@@ -74,11 +103,22 @@ export class AuthService {
       sub: admin._id.toString(),
       email: admin.email,
       role: admin.branch_ids && admin.branch_ids.length > 0 ? USER_ROLES.BRANCH_ADMIN : USER_ROLES.ORG_ADMIN,
-      organization_id: admin.organization_id.toString(),
-      branch_ids: admin.branch_ids ? admin.branch_ids.map(id => id.toString()) : [],
+      organizationId: admin.organization_id.toString(),
+      branchIds: admin.branch_ids ? admin.branch_ids.map(id => id.toString()) : [],
     };
 
-    return this.generateTokens(payload);
+    const tokens = await this.generateTokens(payload);
+    return {
+      ...tokens,
+      user: {
+        id: admin._id,
+        email: admin.email,
+        fullName: admin.full_name,
+        role: payload.role,
+        organizationId: payload.organizationId,
+        branchIds: payload.branchIds,
+      }
+    };
   }
 
   async staffLogin(loginDto: LoginDto) {
@@ -91,11 +131,22 @@ export class AuthService {
       sub: staff._id.toString(),
       email: staff.email,
       role: USER_ROLES.STAFF,
-      organization_id: staff.organization_id.toString(),
-      branch_id: staff.branch_id.toString(),
+      organizationId: staff.organization_id.toString(),
+      branchId: staff.branch_id.toString(),
     };
 
-    return this.generateTokens(payload);
+    const tokens = await this.generateTokens(payload);
+    return {
+      ...tokens,
+      user: {
+        id: staff._id,
+        email: staff.email,
+        fullName: staff.full_name,
+        role: payload.role,
+        organizationId: payload.organizationId,
+        branchId: payload.branchId,
+      }
+    };
   }
 
   async customerLogin(loginDto: LoginDto) {
@@ -108,11 +159,22 @@ export class AuthService {
       sub: customer._id.toString(),
       email: customer.email,
       role: USER_ROLES.CUSTOMER,
-      organization_id: customer.organization_id.toString(),
-      branch_id: customer.branch_id.toString(),
+      organizationId: customer.organization_id.toString(),
+      branchId: customer.branch_id.toString(),
     };
 
-    return this.generateTokens(payload);
+    const tokens = await this.generateTokens(payload);
+    return {
+      ...tokens,
+      user: {
+        id: customer._id,
+        email: customer.email,
+        fullName: customer.full_name,
+        role: payload.role,
+        organizationId: payload.organizationId,
+        branchId: payload.branchId,
+      }
+    };
   }
 
   async customerRegister(registerDto: RegisterDto) {
@@ -127,10 +189,21 @@ export class AuthService {
       sub: customer._id.toString(),
       email: customer.email,
       role: USER_ROLES.CUSTOMER,
-      organization_id: customer.organization_id.toString(),
-      branch_id: customer.branch_id.toString(),
+      organizationId: customer.organization_id.toString(),
+      branchId: customer.branch_id.toString(),
     };
 
-    return this.generateTokens(payload);
+    const tokens = await this.generateTokens(payload);
+    return {
+      ...tokens,
+      user: {
+        id: customer._id,
+        email: customer.email,
+        fullName: customer.full_name,
+        role: payload.role,
+        organizationId: payload.organizationId,
+        branchId: payload.branchId,
+      }
+    };
   }
 }

@@ -26,11 +26,11 @@ export class Staff extends Document {
   @Prop({ type: String, enum: Object.values(STAFF_ROLES), required: true })
   role: StaffRole;
 
-  @Prop({ type: String, required: true })
-  organization_id: string;
+  @Prop({ type: Types.ObjectId, required: true, ref: 'organizations' })
+  organization_id: Types.ObjectId;
 
-  @Prop({ type: String, required: true })
-  branch_id: string;
+  @Prop({ type: Types.ObjectId, required: true, ref: 'branches' })
+  branch_id: Types.ObjectId;
 
   @Prop({
     type: {
