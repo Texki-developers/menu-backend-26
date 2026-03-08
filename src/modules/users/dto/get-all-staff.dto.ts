@@ -17,7 +17,7 @@ export class GetAllStaffDto {
 
   @IsOptional()
   @IsString()
-  @ApiPropertyOptional({ example: '69948af4435dccf179e3e939' })
+  @ApiPropertyOptional({ example: '69948af4435dccf179e3e939', description: 'Organization ID (optional, handled by backend)' })
   organization_id?: string;
 
   @IsOptional()

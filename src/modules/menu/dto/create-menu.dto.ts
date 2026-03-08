@@ -38,9 +38,9 @@ export class CreateMenuDto {
     @ApiPropertyOptional({ example: true, default: true })
     isActive?: boolean;
 
-    @IsNotEmpty()
-    @IsMongoId()
-    @ApiProperty({ example: '65d8f7a9e1b2c3d4e5f6a7b8' })
-    organization_id: string;
+    @IsOptional()
+    @IsString()
+    @ApiPropertyOptional({ example: '65d8f7a9e1b2c3d4e5f6a7b8', description: 'Organization ID (optional, handled by backend)' })
+    organization_id?: string;
 
 }

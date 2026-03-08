@@ -102,10 +102,10 @@ export class CreateBranchDto {
     @ApiProperty({example:'9876543210'})
     phone:string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
-    @ApiProperty({example:'69948af4435dccf179e3e939'})
-    organization_id:string;
+    @ApiPropertyOptional({ example: '69948af4435dccf179e3e939', description: 'Organization ID (optional, handled by backend)' })
+    organization_id?: string;
 
     @IsNotEmpty()
     @IsEmail()

@@ -22,10 +22,10 @@ export class CreateAdminDto {
   @MinLength(6)
   password: string;
 
-  @ApiProperty({ example: '60d5ecb5b48777001f7c2231' })
-  @IsMongoId()
-  @IsNotEmpty()
-  organization_id: string;
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ example: '60d5ecb5b48777001f7c2231', description: 'Organization ID (optional, handled by backend)' })
+  organization_id?: string;
 
   @ApiProperty({ example: ['60d5ecb5b48777001f7c2232'], required: false })
   @IsArray()

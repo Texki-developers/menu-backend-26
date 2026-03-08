@@ -56,10 +56,10 @@ export class CreateStaffDto {
   @IsEnum(STAFF_ROLES)
   role: StaffRole;
 
-  @ApiProperty({ example: '60d5ecb5b48777001f7c2231' })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  organization_id: string;
+  @ApiProperty({ example: '60d5ecb5b48777001f7c2231', description: 'Organization ID (optional, handled by backend)' })
+  organization_id?: string;
 
   @ApiProperty({ example: '60d5ecb5b48777001f7c2232' })
   @IsString()

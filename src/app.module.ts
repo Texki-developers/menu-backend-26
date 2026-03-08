@@ -15,9 +15,11 @@ import { MenuItemsModule } from './modules/menu-items/menu-items.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { OrganizationScopeGuard } from './common/guards/organization-scope.guard';
 
 @Module({
   imports: [
+    // ... imports same as before
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env.development',
@@ -73,6 +75,10 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: OrganizationScopeGuard,
     },
   ],
 })

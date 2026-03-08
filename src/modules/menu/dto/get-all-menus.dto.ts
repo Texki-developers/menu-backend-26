@@ -19,7 +19,7 @@ export class GetAllMenusDto {
     @IsString()
     limit?: string;
 
-    @ApiPropertyOptional({ example: '69948af4435dccf179e3e939' })
+    @ApiPropertyOptional({ example: '69948af4435dccf179e3e939', description: 'Organization ID (optional, handled by backend)' })
     @IsOptional()
     @IsString()
     organization_id?: string;
