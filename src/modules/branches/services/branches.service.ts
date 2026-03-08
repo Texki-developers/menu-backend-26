@@ -31,7 +31,9 @@ export class BranchService {
             // 1. Build Filter Objects
             const baseFilter: Record<string, any> = {};
             if (organization_id) {
-                baseFilter.organization_id = new mongoose.Types.ObjectId(organization_id);
+                baseFilter.organization_id = { 
+                    $in: [new mongoose.Types.ObjectId(organization_id), organization_id] 
+                };
             }
 
             const searchFilter: Record<string, any> = {};
@@ -69,9 +71,12 @@ export class BranchService {
         }
     }
 
-    async downloadBranchesCsv(res: any) {
+    async downloadBranchesCsv(res: any, organizationId?: string) {
         try {
-            const branches = await this.branchModel.find().lean();
+            const filter = organizationId ? { 
+                organization_id: { $in: [new mongoose.Types.ObjectId(organizationId), organizationId] } 
+            } : {};
+            const branches = await this.branchModel.find(filter).lean();
             
             const headers = ['Name', 'Email', 'Phone', 'Branch Type', 'City', 'Street', 'Status', 'Created At'];
             const rows = branches.map(branch => {

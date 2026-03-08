@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus, Get, Query, Param, Patch, Delete } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus, Get, Query, Param, Patch, Delete, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from '../services/users.service';
 import { CreateStaffDto } from '../dto/create-staff.dto';
@@ -23,7 +23,9 @@ export class StaffManagementController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new Staff member' })
   @ApiResponse({ status: 201, description: 'Staff created successfully' })
-  async create(@Body() createStaffDto: CreateStaffDto) {
+  async create(@Body() createStaffDto: CreateStaffDto, @Req() req: any) {
+    // Automatically scope new staff to the admin's organization
+    createStaffDto.organization_id = req.user.organizationId;
     return this.usersService.createStaff(createStaffDto);
   }
 
@@ -32,7 +34,9 @@ export class StaffManagementController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all Staff members' })
   @ApiResponse({ status: 200, description: 'Staff members retrieved successfully' })
-  async listStaff(@Query() query: GetAllStaffDto) {
+  async listStaff(@Query() query: GetAllStaffDto, @Req() req: any) {
+    // Always scope to the admin's organization — frontend doesn't need to send it
+    query.organization_id = req.user.organizationId;
     return this.usersService.getAllStaff(query);
   }
 
