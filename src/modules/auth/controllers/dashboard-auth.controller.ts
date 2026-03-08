@@ -6,14 +6,17 @@ import { LoginDto } from '../dto/login.dto';
 import { CookieUtils } from '../../../common/utils';
 import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 
+import { Public } from '../../../common/decorators/public.decorator';
+
 @ApiTags('Dashboard Auth')
 @Controller('auth/dashboard')
 @UseGuards(ThrottlerGuard)
 export class DashboardAuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('login')
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Unified Admin/Staff login (sets HttpOnly cookies)' })
   @ApiResponse({ status: 200, description: 'Login successful, tokens set in cookies' })

@@ -1,4 +1,5 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, Res } from '@nestjs/common';
+import { Public } from '../../../common/decorators/public.decorator';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { AuthService } from '../services/auth.service';
@@ -11,6 +12,7 @@ import { CookieUtils } from '../../../common/utils';
 export class CustomerAuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('register')
   @ApiOperation({ summary: 'Customer registration (sets HttpOnly cookies)' })
   @ApiResponse({ status: 201, description: 'Customer registered successfully, tokens set in cookies' })
@@ -23,6 +25,7 @@ export class CustomerAuthController {
     return { message: 'Registration successful' };
   }
 
+  @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Customer login (sets HttpOnly cookies)' })

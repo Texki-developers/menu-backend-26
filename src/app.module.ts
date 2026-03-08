@@ -12,8 +12,9 @@ import { MenuModule } from './modules/menu/menu.module';
 import { ProductsModule } from './modules/products/products.module';
 import { MenuItemsModule } from './modules/menu-items/menu-items.module';
 
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -32,15 +33,23 @@ import { APP_GUARD } from '@nestjs/core';
         REFRESH_TOKEN_SECRET: Joi.string().required(),
         REFRESH_TOKEN_EXPIRATION: Joi.string().required(),
         SYSTEM_ACCESS_KEY: Joi.string().required(),
+        THROTTLER_TTL: Joi.number().default(60000),
+        THROTTLER_LIMIT: Joi.number().default(10),
       }),
       validationOptions: {
         abortEarly: true,
       }
     }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 10,
-    }]),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          ttl: config.get<number>('THROTTLER_TTL') ?? 60000,
+          limit: config.get<number>('THROTTLER_LIMIT') ?? 10,
+        },
+      ],
+    }),
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
@@ -60,6 +69,11 @@ import { APP_GUARD } from '@nestjs/core';
     MenuItemsModule,
   ],
   controllers: [],
-
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule {}
