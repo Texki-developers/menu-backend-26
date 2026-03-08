@@ -1,6 +1,6 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Admin } from '../schemas/admin.schema';
 import { Staff } from '../schemas/staff.schema';
 import { Customer } from '../schemas/customer.schema';
@@ -14,6 +14,7 @@ import { handleDbError } from '../../../common/utils/db-error.utils';
 import { SortOrder } from '../../../common/interfaces/pagination.interface';
 import { UpdateStaffDto } from '../dto/update-staff.dto';
 import { USER_ROLES, UserRole } from '../../../constants/user-roles.constant';
+import { escapeRegex } from '../../../common/utils/regex.utils';
 
 @Injectable()
 export class UsersService {
@@ -60,6 +61,8 @@ export class UsersService {
     const hashedPassword = await PasswordUtils.hash(createStaffDto.password);
     const staff = new this.staffModel({
       ...createStaffDto,
+      organization_id: createStaffDto.organization_id ? new Types.ObjectId(createStaffDto.organization_id) : undefined,
+      branch_id: createStaffDto.branch_id ? new Types.ObjectId(createStaffDto.branch_id) : undefined,
       password: hashedPassword,
     });
     return staff.save();
@@ -78,21 +81,39 @@ export class UsersService {
   }
 
   // Staff Management CRUD
-  async getAllStaff(query: GetAllStaffDto) {
+  async getAllStaff(queryDto: GetAllStaffDto) {
+    console.log("🚀 ~ UsersService ~ getAllStaff ~ queryDto:", queryDto)
     try {
       const baseFilter: Record<string, any> = {};
-      if (query.organization_id) baseFilter.organization_id = query.organization_id;
-      if (query.branch_id) baseFilter.branch_id = query.branch_id;
-
+      if (queryDto.organization_id) {
+        const orgId = queryDto.organization_id;
+        baseFilter.organization_id = { $in: [new Types.ObjectId(orgId), orgId] };
+      }
+      if (queryDto.branch_id) {
+        const branchId = queryDto.branch_id;
+        baseFilter.branch_id = { $in: [new Types.ObjectId(branchId), branchId] };
+      }
       const searchFilter: Record<string, any> = {};
-      if (query.role) searchFilter.role = query.role;
-      if (query.is_active !== undefined) searchFilter.is_active = query.is_active;
-
+      if (queryDto.role) searchFilter.role = queryDto.role;
+      if (queryDto.is_active !== undefined) searchFilter.is_active = queryDto.is_active;
+      
+      if (queryDto.query) {
+        const safeQuery = escapeRegex(queryDto.query);
+        searchFilter.$or = [
+          { full_name: { $regex: safeQuery, $options: 'i' } },
+          { email: { $regex: safeQuery, $options: 'i' } },
+          { phone: { $regex: safeQuery, $options: 'i' } },
+          { employee_code: { $regex: safeQuery, $options: 'i' } },
+        ];
+      }
+      
+      console.log("🚀 ~ UsersService ~ getAllStaff ~ baseFilter:", baseFilter)
+      console.log("🚀 ~ UsersService ~ getAllStaff ~ searchFilter:", searchFilter)
       return await paginate(this.staffModel, {
-        page: query.page,
-        limit: query.limit,
-        sortBy: query.sortBy,
-        sortOrder: (query.sortOrder?.toUpperCase() as SortOrder) || SortOrder.DESC,
+        page: queryDto.page,
+        limit: queryDto.limit,
+        sortBy: queryDto.sortBy || 'created_at',
+        sortOrder: (queryDto.sortOrder?.toUpperCase() as SortOrder) || SortOrder.DESC,
         baseFilter,
         searchFilter,
       });

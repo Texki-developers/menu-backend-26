@@ -7,6 +7,11 @@ import { Transform } from 'class-transformer';
 export class GetAllStaffDto {
   @IsOptional()
   @IsString()
+  @ApiPropertyOptional({ example: 'Search keyword' })
+  query?: string;
+
+  @IsOptional()
+  @IsString()
   @ApiPropertyOptional({ example: '1' })
   page?: string;
 
@@ -31,7 +36,7 @@ export class GetAllStaffDto {
   role?: StaffRole;
 
   @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(({ value }) => value === undefined ? value : value === 'true' || value === true)
   @IsBoolean()
   @ApiPropertyOptional({ example: true })
   is_active?: boolean;
