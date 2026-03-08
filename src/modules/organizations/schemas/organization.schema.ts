@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { City } from '../../branches/constants/constant';
 
 @Schema({ 
   collection: 'organizations', 
@@ -14,6 +15,9 @@ export class Organization extends Document {
 
   @Prop({ required: true })
   address: string;
+
+  @Prop({ type: String, enum: Object.values(City), required: true })
+  city: City;
 
   @Prop({ type: String, enum: ['AED', 'INR'], default: 'AED' })
   currency: string;

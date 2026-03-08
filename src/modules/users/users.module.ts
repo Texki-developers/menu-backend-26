@@ -6,9 +6,11 @@ import { Customer, CustomerSchema } from './schemas/customer.schema';
 import { UsersService } from './services/users.service';
 import { AdminManagementController } from './controllers/admin-management.controller';
 import { StaffManagementController } from './controllers/staff-management.controller';
+import { OrganizationsModule } from '../organizations/organizations.module';
 
 @Module({
   imports: [
+    OrganizationsModule,
     MongooseModule.forFeature([
       { name: Admin.name, schema: AdminSchema },
       { name: Staff.name, schema: StaffSchema },

@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsArray, IsMongoId, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsString, MinLength, IsOptional, IsArray, IsMongoId } from 'class-validator';
 
 export class CreateAdminDto {
   @ApiProperty({ example: 'Admin Name' })
@@ -24,12 +24,16 @@ export class CreateAdminDto {
 
   @IsOptional()
   @IsString()
-  @ApiProperty({ example: '60d5ecb5b48777001f7c2231', description: 'Organization ID (optional, handled by backend)' })
+  @ApiPropertyOptional({ example: '60d5ecb5b48777001f7c2231', description: 'Organization ID (optional, handled by backend)' })
   organization_id?: string;
+}
 
-  @ApiProperty({ example: ['60d5ecb5b48777001f7c2232'], required: false })
+export class CreateOrgAdminDto extends CreateAdminDto {}
+
+export class CreateBranchAdminDto extends CreateAdminDto {
+  @ApiProperty({ example: ['60d5ecb5b48777001f7c2232'], description: 'Branch IDs (required for Branch Admin)' })
   @IsArray()
   @IsMongoId({ each: true })
-  @IsOptional()
-  branch_ids?: string[];
+  @IsNotEmpty({ each: true })
+  branch_ids: string[];
 }

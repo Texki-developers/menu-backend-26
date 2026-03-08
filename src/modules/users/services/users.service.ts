@@ -4,7 +4,8 @@ import { Model } from 'mongoose';
 import { Admin } from '../schemas/admin.schema';
 import { Staff } from '../schemas/staff.schema';
 import { Customer } from '../schemas/customer.schema';
-import { CreateAdminDto } from '../dto/create-admin.dto';
+import { Organization } from '../../organizations/schemas/organization.schema';
+import { CreateAdminDto, CreateOrgAdminDto, CreateBranchAdminDto } from '../dto/create-admin.dto';
 import { CreateStaffDto } from '../dto/create-staff.dto';
 import { GetAllStaffDto } from '../dto/get-all-staff.dto';
 import { PasswordUtils } from '../../../common/utils/password.utils';
@@ -12,6 +13,7 @@ import { paginate } from '../../../common/utils/pagination.utils';
 import { handleDbError } from '../../../common/utils/db-error.utils';
 import { SortOrder } from '../../../common/interfaces/pagination.interface';
 import { UpdateStaffDto } from '../dto/update-staff.dto';
+import { USER_ROLES, UserRole } from '../../../constants/user-roles.constant';
 
 @Injectable()
 export class UsersService {
@@ -19,19 +21,31 @@ export class UsersService {
     @InjectModel(Admin.name) private readonly adminModel: Model<Admin>,
     @InjectModel(Staff.name) private readonly staffModel: Model<Staff>,
     @InjectModel(Customer.name) private readonly customerModel: Model<Customer>,
+    @InjectModel(Organization.name) private readonly organizationModel: Model<Organization>,
   ) {}
 
-  async createAdmin(createAdminDto: CreateAdminDto): Promise<Admin> {
+  async createAdmin(createAdminDto: CreateAdminDto, role: UserRole): Promise<Admin> {
+    // Validate organization exists
+    if (createAdminDto.organization_id) {
+       const orgExists = await this.organizationModel.findById(createAdminDto.organization_id);
+       if (!orgExists) {
+         throw new NotFoundException('Organization not found');
+       }
+    }
+
     const existing = await this.adminModel.findOne({ email: createAdminDto.email });
     if (existing) {
       throw new ConflictException('Admin with this email already exists');
     }
 
     const hashedPassword = await PasswordUtils.hash(createAdminDto.password);
-    const admin = new this.adminModel({
+    const adminData: any = {
       ...createAdminDto,
       password: hashedPassword,
-    });
+      role,
+    };
+
+    const admin = new this.adminModel(adminData);
     return admin.save();
   }
 
