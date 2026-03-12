@@ -14,10 +14,12 @@ export class MenuItemService {
     @InjectModel(MenuItem.name) private menuItemModel: Model<MenuItem>,
   ) {}
 
-  async createMenuItem(dto: CreateMenuItemDto): Promise<MenuItem> {
+  async createMenuItem(dto: CreateMenuItemDto, orgId: string, branchId: string): Promise<MenuItem> {
     try {
       const item = new this.menuItemModel({
         ...dto,
+        organization_id: orgId,
+        branch_id: dto.branch_id || branchId,
         menu_item_uuid: `menu_item_${crypto.randomUUID()}`,
       });
       return await item.save();
@@ -28,17 +30,18 @@ export class MenuItemService {
   }
 
   async getFlatMenuItems(
+    orgId: string,
+    branchId: string,
     menu_id?: string,
     category_id?: string,
-    organization_id?: string,
-    branch_id?: string,
   ): Promise<MenuItem[]> {
     try {
-      const filter: Record<string, any> = {};
+      const filter: Record<string, any> = { organization_id: orgId };
+      if (branchId) {
+        filter.branch_id = branchId;
+      }
       if (menu_id) filter.menu_id = menu_id;
       if (category_id) filter.category_id = category_id;
-      if (organization_id) filter.organization_id = organization_id;
-      if (branch_id) filter.branch_id = branch_id;
 
       return await this.menuItemModel
         .find(filter)
@@ -50,27 +53,22 @@ export class MenuItemService {
     }
   }
 
-  async getAllMenuItems(dto: GetAllMenuItemsDto) {
+  async getAllMenuItems(dto: GetAllMenuItemsDto, orgId: string, branchId: string) {
     try {
       const {
         page = '1',
         limit = '20',
         menu_id,
         category_id,
-        organization_id,
-        branch_id,
         is_available,
         is_featured,
         sortBy = 'sort_order',
         sortOrder = SortOrder.ASC,
       } = dto;
       console.log("🚀 ~ MenuItemService ~ getAllMenuItems ~ dto:", dto)
-      const baseFilter: Record<string, any> = {};
-      if (organization_id) {
-        baseFilter.organization_id = organization_id;
-      }
-      if (branch_id) {
-        baseFilter.branch_id = branch_id;
+      const baseFilter: Record<string, any> = { organization_id: orgId };
+      if (branchId) {
+        baseFilter.branch_id = branchId;
       }
 
       const searchFilter: Record<string, any> = {};
@@ -100,10 +98,14 @@ export class MenuItemService {
     }
   }
 
-  async getMenuItemById(id: string): Promise<MenuItem> {
+  async getMenuItemById(id: string, orgId: string, branchId: string): Promise<MenuItem> {
     try {
+      const filter: Record<string, any> = { _id: id, organization_id: orgId };
+      if (branchId) {
+        filter.branch_id = branchId;
+      }
       const item = await this.menuItemModel
-        .findById(id)
+        .findOne(filter)
         .populate('product_id', 'name slug type spice_level calories media allergens tags')
         .lean();
       if (!item) throw new NotFoundException('Menu item not found');
@@ -115,10 +117,14 @@ export class MenuItemService {
     }
   }
 
-  async updateMenuItem(id: string, dto: UpdateMenuItemDto): Promise<MenuItem> {
+  async updateMenuItem(id: string, dto: UpdateMenuItemDto, orgId: string, branchId: string): Promise<MenuItem> {
     try {
-      const updated = await this.menuItemModel.findByIdAndUpdate(
-        id,
+      const filter: Record<string, any> = { _id: id, organization_id: orgId };
+      if (branchId) {
+        filter.branch_id = branchId;
+      }
+      const updated = await this.menuItemModel.findOneAndUpdate(
+        filter,
         { $set: dto },
         { new: true, runValidators: true },
       );
@@ -131,9 +137,13 @@ export class MenuItemService {
     }
   }
 
-  async deleteMenuItem(id: string) {
+  async deleteMenuItem(id: string, orgId: string, branchId: string) {
     try {
-      const result = await this.menuItemModel.findByIdAndDelete(id);
+      const filter: Record<string, any> = { _id: id, organization_id: orgId };
+      if (branchId) {
+        filter.branch_id = branchId;
+      }
+      const result = await this.menuItemModel.findOneAndDelete(filter);
       if (!result) throw new NotFoundException('Menu item not found');
       return { message: 'Menu item deleted successfully', id };
     } catch (error) {

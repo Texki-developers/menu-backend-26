@@ -32,8 +32,8 @@ export class CreateMenuItemDto {
 
   @IsOptional()
   @IsString()
-  @ApiProperty({ example: '65d8f7a9e1b2c3d4e5f6a7b8' })
-  branch_id: string;
+  @ApiPropertyOptional({ example: '65d8f7a9e1b2c3d4e5f6a7b8' })
+  branch_id?: string;
 
   @IsNotEmpty()
   @IsNumber()

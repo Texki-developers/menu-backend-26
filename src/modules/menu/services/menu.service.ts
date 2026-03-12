@@ -16,9 +16,13 @@ export class MenuService {
         @InjectModel(Category.name) private categoryModel: Model<Category>,
     ){}
 
-    async createMenu(createMenuDto: CreateMenuDto): Promise<Menu> {
+    async createMenu(createMenuDto: CreateMenuDto, orgId: string, branchId: string): Promise<Menu> {
         try {
-            const menu = new this.menuModel(createMenuDto);
+            const menu = new this.menuModel({
+                ...createMenuDto,
+                organization_id: orgId,
+                branch_id: createMenuDto.branch_id || branchId
+            });
             return await menu.save();
         } catch (error) {
             handleDbError(error, 'creating the menu');
@@ -26,22 +30,23 @@ export class MenuService {
         }
     }
 
-    async getAllMenus(getAllMenusDto: GetAllMenusDto) {
+    async getAllMenus(getAllMenusDto: GetAllMenusDto, orgId: string, branchId: string) {
         try {
             const { 
                 query, 
                 page = '1', 
                 limit = '10', 
-                organization_id, 
                 status, 
                 sortBy = 'created_at', 
                 sortOrder = SortOrder.DESC 
             } = getAllMenusDto;
 
             // 1. Build Filter Objects
-            const baseFilter: Record<string, any> = {};
-            if (organization_id) {
-                baseFilter.organization_id = new Types.ObjectId(organization_id);
+            const baseFilter: Record<string, any> = {
+                organization_id: orgId
+            };
+            if (branchId) {
+                baseFilter.branch_id = branchId;
             }
 
             const searchFilter: Record<string, any> = {};
@@ -78,13 +83,19 @@ export class MenuService {
         }
     }
 
-    async getMenuById(id: string): Promise<any> {
+    async getMenuById(id: string, orgId: string, branchId: string): Promise<any> {
         try {
+            const match: Record<string, any> = {
+                _id: new Types.ObjectId(id),
+                organization_id: orgId
+            };
+            if (branchId) {
+                match.branch_id = branchId;
+            }
+
             const results = await this.menuModel.aggregate([
                 {
-                    $match: {
-                        _id: new Types.ObjectId(id)
-                    }
+                    $match: match
                 },
                 {
                     $lookup: {
@@ -116,10 +127,15 @@ export class MenuService {
         }
     }
 
-    async updateMenu(id: string, updateData: UpdateMenuDto): Promise<Menu> {
+    async updateMenu(id: string, updateData: UpdateMenuDto, orgId: string, branchId: string): Promise<Menu> {
         try {
-            const updatedMenu = await this.menuModel.findByIdAndUpdate(
-                id,
+            const filter: Record<string, any> = { _id: id, organization_id: orgId };
+            if (branchId) {
+                filter.branch_id = branchId;
+            }
+
+            const updatedMenu = await this.menuModel.findOneAndUpdate(
+                filter,
                 { $set: updateData },
                 { new: true, runValidators: true }
             );
@@ -136,9 +152,17 @@ export class MenuService {
         }
     }
 
-    async deleteMenu(id: string) {
+    async deleteMenu(id: string, orgId: string, branchId: string) {
         try {
-            const result = await this.menuModel.findByIdAndDelete(id);
+            const filter: Record<string, any> = {
+                _id: id,
+                organization_id: orgId
+            };
+            if (branchId) {
+                filter.branch_id = branchId;
+            }
+
+            const result = await this.menuModel.findOneAndDelete(filter);
             if (!result) {
                 throw new NotFoundException('Menu not found');
             }

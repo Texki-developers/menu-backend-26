@@ -14,10 +14,12 @@ export class ProductService {
     @InjectModel(Product.name) private productModel: Model<Product>,
   ) {}
 
-  async createProduct(dto: CreateProductDto): Promise<Product> {
+  async createProduct(dto: CreateProductDto, orgId: string, branchId: string): Promise<Product> {
     try {
       const product = new this.productModel({
         ...dto,
+        organization_id: orgId,
+        branch_id: dto.branch_id || branchId,
         product_uuid: `prod_${crypto.randomUUID()}`,
       });
       return await product.save();
@@ -27,10 +29,14 @@ export class ProductService {
     }
   }
 
-  async downloadProductsCsv(res: any) {
+  async downloadProductsCsv(res: any, orgId: string, branchId: string) {
     try {
+      const filter: Record<string, any> = { organization_id: orgId, is_deleted: { $ne: true } };
+      if (branchId) {
+        filter.branch_id = branchId;
+      }
       const products = await this.productModel
-        .find({ is_deleted: { $ne: true } })
+        .find(filter)
         .lean();
 
       const headers = [
@@ -85,22 +91,21 @@ export class ProductService {
     }
   }
 
-  async getAllProducts(dto: GetAllProductsDto) {
+  async getAllProducts(dto: GetAllProductsDto, orgId: string, branchId: string) {
     try {
       const {
         query,
         page = '1',
         limit = '10',
-        organization_id,
         type,
         is_active,
         is_featured,
         sortBy = 'created_at',
         sortOrder = SortOrder.DESC,
       } = dto; 
-      const baseFilter: Record<string, any> = { is_deleted: { $ne: true } };
-      if (organization_id) {
-        baseFilter.organization_id = organization_id;
+      const baseFilter: Record<string, any> = { organization_id: orgId, is_deleted: { $ne: true } };
+      if (branchId) {
+        baseFilter.branch_id = branchId;
       }
 
       const searchFilter: Record<string, any> = {};
@@ -137,9 +142,13 @@ export class ProductService {
     }
   }
 
-  async getProductById(id: string): Promise<Product> {
+  async getProductById(id: string, orgId: string, branchId: string): Promise<Product> {
     try {
-      const product = await this.productModel.findById(id).lean();
+      const filter: Record<string, any> = { _id: id, organization_id: orgId };
+      if (branchId) {
+        filter.branch_id = branchId;
+      }
+      const product = await this.productModel.findOne(filter).lean();
       if (!product) throw new NotFoundException('Product not found');
       return product as unknown as Product;
     } catch (error) {
@@ -149,10 +158,14 @@ export class ProductService {
     }
   }
 
-  async updateProduct(id: string, dto: UpdateProductDto): Promise<Product> {
+  async updateProduct(id: string, dto: UpdateProductDto, orgId: string, branchId: string): Promise<Product> {
     try {
-      const updated = await this.productModel.findByIdAndUpdate(
-        id,
+      const filter: Record<string, any> = { _id: id, organization_id: orgId };
+      if (branchId) {
+        filter.branch_id = branchId;
+      }
+      const updated = await this.productModel.findOneAndUpdate(
+        filter,
         { $set: dto },
         { new: true, runValidators: true },
       );
@@ -165,11 +178,15 @@ export class ProductService {
     }
   }
 
-  async deleteProduct(id: string) {
+  async deleteProduct(id: string, orgId: string, branchId: string) {
     try {
+      const filter: Record<string, any> = { _id: id, organization_id: orgId };
+      if (branchId) {
+        filter.branch_id = branchId;
+      }
       // Soft delete
-      const result = await this.productModel.findByIdAndUpdate(
-        id,
+      const result = await this.productModel.findOneAndUpdate(
+        filter,
         { $set: { is_deleted: true, is_active: false } },
         { new: true },
       );

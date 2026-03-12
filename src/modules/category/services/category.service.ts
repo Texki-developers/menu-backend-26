@@ -12,9 +12,13 @@ export class CategoryService {
         @InjectModel(Category.name) private categoryModel: Model<Category>,
     ){}
 
-    async createCategory(createCategoryDto: CreateCategoryDto): Promise<Category> {
+    async createCategory(createCategoryDto: CreateCategoryDto, orgId: string, branchId: string): Promise<Category> {
         try {
-            const category = new this.categoryModel(createCategoryDto);
+            const category = new this.categoryModel({
+                ...createCategoryDto,
+                organization_id: orgId,
+                branch_id: createCategoryDto.branch_id || branchId
+            });
             return await category.save();
         } catch (error) {
             handleDbError(error, 'creating the category');
@@ -22,18 +26,26 @@ export class CategoryService {
         }
     }
 
-    async getAllCategories(): Promise<Category[]> {
+    async getAllCategories(orgId: string, branchId: string): Promise<Category[]> {
         try {
-            return await this.categoryModel.find().lean();
+            const filter: Record<string, any> = { organization_id: orgId };
+            if (branchId) {
+                filter.branch_id = branchId;
+            }
+            return await this.categoryModel.find(filter).lean();
         } catch (error) {
             handleDbError(error, 'getting all categories');
             throw error;
         }
     }
 
-    async getCategoryById(id: string): Promise<Category> {
+    async getCategoryById(id: string, orgId: string, branchId: string): Promise<Category> {
         try {
-            const category = await this.categoryModel.findById(id).lean();
+            const filter: Record<string, any> = { _id: id, organization_id: orgId };
+            if (branchId) {
+                filter.branch_id = branchId;
+            }
+            const category = await this.categoryModel.findOne(filter).lean();
             if (!category) {
                 throw new NotFoundException(`Category with ID ${id} not found`);
             }
@@ -45,10 +57,14 @@ export class CategoryService {
         }
     }
 
-    async updateCategory(id: string, updateData: UpdateCategoryDto): Promise<Category> {
+    async updateCategory(id: string, updateData: UpdateCategoryDto, orgId: string, branchId: string): Promise<Category> {
         try {
-            const updatedCategory = await this.categoryModel.findByIdAndUpdate(
-                id,
+            const filter: Record<string, any> = { _id: id, organization_id: orgId };
+            if (branchId) {
+                filter.branch_id = branchId;
+            }
+            const updatedCategory = await this.categoryModel.findOneAndUpdate(
+                filter,
                 { $set: updateData },
                 { new: true, runValidators: true }
             );
@@ -65,9 +81,13 @@ export class CategoryService {
         }
     }
 
-    async deleteCategory(id: string) {
+    async deleteCategory(id: string, orgId: string, branchId: string) {
         try {
-            const result = await this.categoryModel.findByIdAndDelete(id);
+            const filter: Record<string, any> = { _id: id, organization_id: orgId };
+            if (branchId) {
+                filter.branch_id = branchId;
+            }
+            const result = await this.categoryModel.findOneAndDelete(filter);
             if (!result) {
                 throw new NotFoundException('Category not found');
             }

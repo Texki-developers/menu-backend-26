@@ -115,6 +115,9 @@ export class Product extends Document {
   @Prop({ type: String, required: true })
   organization_id: string;
 
+  @Prop({ type: String, required: false })
+  branch_id?: string;
+
   created_at: Date;
   updated_at: Date;
 }
