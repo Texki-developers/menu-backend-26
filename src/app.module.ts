@@ -11,6 +11,7 @@ import { CategoryModule } from './modules/category/category.module';
 import { MenuModule } from './modules/menu/menu.module';
 import { ProductsModule } from './modules/products/products.module';
 import { MenuItemsModule } from './modules/menu-items/menu-items.module';
+import { OrdersModule } from './modules/orders/orders.module';
 
 import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
@@ -69,6 +70,7 @@ import { OrganizationScopeGuard } from './common/guards/organization-scope.guard
     MenuModule,
     ProductsModule,
     MenuItemsModule,
+    OrdersModule,
   ],
   controllers: [],
   providers: [
