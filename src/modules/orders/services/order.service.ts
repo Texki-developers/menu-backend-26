@@ -3,7 +3,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Order, OrderStatus } from '../schemas/order.schema';
 import { CreateOrderDto } from '../dto/create-order.dto';
-import { handleDbError } from '../../../common/utils';
+import { handleDbError, paginate } from '../../../common/utils';
+import { GetAllOrdersDto } from '../dto/get-all-orders.dto';
+import { SortOrder } from '../../../common/interfaces/pagination.interface';
 
 @Injectable()
 export class OrderService {
@@ -37,13 +39,41 @@ export class OrderService {
     }
   }
 
-  async getAllOrders(orgId: string, branchId: string): Promise<Order[]> {
+  async getAllOrders(dto: GetAllOrdersDto, orgId: string, branchId: string) {
     try {
-      const filter: Record<string, any> = { organization_id: orgId };
+      const {
+        page = '1',
+        limit = '10',
+        status,
+        search,
+        sortBy = 'created_at',
+        sortOrder = SortOrder.DESC,
+      } = dto;
+
+      const baseFilter: Record<string, any> = { organization_id: orgId };
       if (branchId) {
-        filter.branch_id = branchId;
+        baseFilter.branch_id = branchId;
       }
-      return await this.orderModel.find(filter).sort({ created_at: -1 }).exec();
+
+      const searchFilter: Record<string, any> = {};
+      if (status) searchFilter.status = status;
+
+      if (search && search.trim() !== '') {
+        searchFilter.$or = [
+          { order_uuid: { $regex: search, $options: 'i' } },
+          { customer_name: { $regex: search, $options: 'i' } },
+          { table_number: { $regex: search, $options: 'i' } },
+        ];
+      }
+
+      return await paginate(this.orderModel, {
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        baseFilter,
+        searchFilter,
+      });
     } catch (error) {
       handleDbError(error, 'getting all orders');
       throw error;

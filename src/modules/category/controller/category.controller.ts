@@ -14,7 +14,7 @@ export class CategoryController {
         private readonly categoryService: CategoryService,
     ){}
 
-    @Get('get-all')
+    @Get()
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Get all categories', description: 'Retrieve all menu categories' })
     @ApiResponse({ status: HttpStatus.OK, type: [Category] })
@@ -31,7 +31,7 @@ export class CategoryController {
         return this.categoryService.getCategoryById(id, orgId, branchId);
     }
 
-    @Post('create')
+    @Post()
     @HttpCode(HttpStatus.CREATED)
     @ApiOperation({ summary: 'Create a new category', description: 'Create a new category for the menu' })
     @ApiResponse({ status: HttpStatus.CREATED, type: Category })

@@ -6,10 +6,12 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { OrderService } from '../services/order.service';
 import { CreateOrderDto } from '../dto/create-order.dto';
+import { GetAllOrdersDto } from '../dto/get-all-orders.dto';
 import { OrgId } from 'src/common/decorators/org-id.decorator';
 import { BranchId } from 'src/common/decorators/branch-id.decorator';
 import { Order } from '../schemas/order.schema';
@@ -35,8 +37,12 @@ export class OrderController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all orders' })
   @ApiResponse({ status: HttpStatus.OK, type: [Order] })
-  async getAllOrders(@OrgId() orgId: string, @BranchId() branchId: string) {
-    return this.orderService.getAllOrders(orgId, branchId);
+  async getAllOrders(
+    @Query() dto: GetAllOrdersDto,
+    @OrgId() orgId: string,
+    @BranchId() branchId: string,
+  ) {
+    return this.orderService.getAllOrders(dto, orgId, branchId);
   }
 
   @Get(':id')

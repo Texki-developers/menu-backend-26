@@ -25,7 +25,7 @@ import { Product } from '../schemas/product.schema';
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a product', description: 'Add a new product to the catalog' })
   @ApiResponse({ status: HttpStatus.CREATED, type: Product })
@@ -33,7 +33,7 @@ export class ProductController {
     return this.productService.createProduct(dto, orgId, branchId);
   }
 
-  @Get('get-all')
+  @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'List products', description: 'Paginated list with optional filters' })
   async getAllProducts(@Query() dto: GetAllProductsDto, @OrgId() orgId: string, @BranchId() branchId: string) {

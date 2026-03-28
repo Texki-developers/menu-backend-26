@@ -15,7 +15,7 @@ export class MenuController {
         private readonly menuService: MenuService,
     ){}
 
-    @Get('get-all')
+    @Get()
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Get all menus', description: 'Retrieve all menus with pagination, search, and filters' })
     @ApiResponse({ status: HttpStatus.OK, type: [Menu] })
@@ -35,7 +35,7 @@ export class MenuController {
         return this.menuService.getMenuById(id, orgId, branchId);
     }
 
-    @Post('create')
+    @Post()
     @HttpCode(HttpStatus.CREATED)
     @ApiOperation({ summary: 'Create a new menu', description: 'Create a new menu' })
     @ApiResponse({ status: HttpStatus.CREATED, type: Menu })

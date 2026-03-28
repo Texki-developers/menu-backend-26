@@ -24,7 +24,7 @@ export class BranchesController {
         return this.branchService.downloadBranchesCsv(res, req.user.organizationId);
     }
 
-    @Get('get-all')
+    @Get()
     @HttpCode(HttpStatus.OK)
     @ApiOperation({summary:'Get all branches',description:'Get all branches scoped to the admin org'})
     @ApiResponse({status:HttpStatus.OK,type:Branch})
@@ -42,7 +42,7 @@ export class BranchesController {
         return this.branchService.getBranchById(id);
     }
 
-    @Post('create')
+    @Post()
     @HttpCode(HttpStatus.CREATED)
     @ApiOperation({summary:'Create a new branch',description:'Create a new branch'})
     @ApiResponse({status:HttpStatus.CREATED,type:Branch})
