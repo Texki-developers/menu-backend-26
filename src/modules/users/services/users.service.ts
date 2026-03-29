@@ -160,6 +160,57 @@ export class UsersService {
     }
   }
 
+  async changeStaffPassword(id: string, newPassword: string): Promise<{ message: string }> {
+    try {
+      const hashedPassword = await PasswordUtils.hash(newPassword);
+      const result = await this.staffModel.findByIdAndUpdate(
+        id,
+        { $set: { password: hashedPassword } },
+        { new: true }
+      ).exec();
+      if (!result) throw new NotFoundException(`Staff with ID ${id} not found`);
+      return { message: 'Password changed successfully' };
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      handleDbError(error, `changing password for staff ${id}`);
+      throw error;
+    }
+  }
+
+
+  async downloadStaffCsv(res: any, orgId: string) {
+    try {
+      const filter: Record<string, any> = {};
+      if (orgId) {
+        filter.organization_id = { $in: [new Types.ObjectId(orgId), orgId] };
+      }
+      const staffList = await this.staffModel.find(filter).lean();
+
+      const headers = ['Full Name', 'Email', 'Phone', 'Role', 'Employee Code', 'Is Active', 'Created At'];
+      const rows = staffList.map((s: any) => [
+        s.full_name || '',
+        s.email || '',
+        s.phone || '',
+        s.role || '',
+        s.employee_code || '',
+        s.is_active ? 'Active' : 'Inactive',
+        s.created_at ? new Date(s.created_at).toLocaleString() : '',
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
+      ].join('\n');
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=staff.csv');
+      return res.status(200).send(csvContent);
+    } catch (error) {
+      handleDbError(error, 'downloading staff csv');
+      throw error;
+    }
+  }
+
   async deleteStaff(id: string): Promise<any> {
     try {
       const result = await this.staffModel.findByIdAndDelete(id).exec();

@@ -1,9 +1,10 @@
-import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus, Get, Query, Param, Patch, Delete, Req } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus, Get, Query, Param, Patch, Delete, Req, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from '../services/users.service';
 import { CreateStaffDto } from '../dto/create-staff.dto';
 import { GetAllStaffDto } from '../dto/get-all-staff.dto';
 import { UpdateStaffDto } from '../dto/update-staff.dto';
+import { ChangeStaffPasswordDto } from '../dto/change-staff-password.dto';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -40,6 +41,14 @@ export class StaffManagementController {
     return this.usersService.getAllStaff(query);
   }
 
+  @Get('download')
+  @Roles(USER_ROLES.ORG_ADMIN, USER_ROLES.BRANCH_ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Download staff list as CSV' })
+  async downloadStaff(@Req() req: any, @Res() res: any) {
+    return this.usersService.downloadStaffCsv(res, req.user.organizationId);
+  }
+
   @Get(':id')
   @Roles(USER_ROLES.ORG_ADMIN, USER_ROLES.BRANCH_ADMIN)
   @HttpCode(HttpStatus.OK)
@@ -56,6 +65,15 @@ export class StaffManagementController {
   @ApiResponse({ status: 200, description: 'Staff member updated successfully' })
   async update(@Param('id') id: string, @Body() updateStaffDto: UpdateStaffDto) {
     return this.usersService.updateStaff(id, updateStaffDto);
+  }
+
+  @Patch(':id/change-password')
+  @Roles(USER_ROLES.ORG_ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Change staff member password (admin only)' })
+  @ApiResponse({ status: 200, description: 'Password changed successfully' })
+  async changePassword(@Param('id') id: string, @Body() dto: ChangeStaffPasswordDto) {
+    return this.usersService.changeStaffPassword(id, dto.password);
   }
 
   @Delete(':id')
