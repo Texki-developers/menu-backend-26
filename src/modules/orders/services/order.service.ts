@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Order, OrderStatus } from '../schemas/order.schema';
@@ -11,6 +12,7 @@ import { SortOrder } from '../../../common/interfaces/pagination.interface';
 export class OrderService {
   constructor(
     @InjectModel(Order.name) private orderModel: Model<Order>,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async createOrder(dto: CreateOrderDto, orgId: string, branchId: string): Promise<Order> {
@@ -32,7 +34,12 @@ export class OrderService {
         status: OrderStatus.PENDING,
       });
 
-      return await order.save();
+      const savedOrder = await order.save();
+
+      // Emit event for real-time notifications
+      this.eventEmitter.emit('order.created', savedOrder);
+
+      return savedOrder;
     } catch (error) {
       handleDbError(error, 'creating the order');
       throw error;
@@ -92,6 +99,47 @@ export class OrderService {
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
       handleDbError(error, 'getting the order');
+      throw error;
+    }
+  }
+
+  async updateOrderStatus(
+    id: string,
+    status: OrderStatus,
+    orgId: string,
+    branchId: string | null,
+  ): Promise<Order> {
+    try {
+      // 1. Fetch the order first to verify ownership
+      const order = await this.orderModel.findById(id).exec();
+      if (!order) {
+        throw new NotFoundException('Order not found');
+      }
+
+      // 2. Strict Organization Check
+      if (order.organization_id.toString() !== orgId) {
+        throw new ForbiddenException('You do not have permission to access this order');
+      }
+
+      // 3. Strict Branch Check (for Staff members)
+      // If branchId is provided (from decorator for Staff), it must match the order's branch
+      if (branchId && order.branch_id.toString() !== branchId) {
+        throw new ForbiddenException('You do not have permission to access this order from this branch');
+      }
+
+      // 4. Update the status
+      order.status = status;
+      const updatedOrder = await order.save();
+
+      // Emit event for real-time notifications
+      this.eventEmitter.emit('order.updated', updatedOrder);
+
+      return updatedOrder;
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+        throw error;
+      }
+      handleDbError(error, 'updating the order status');
       throw error;
     }
   }
