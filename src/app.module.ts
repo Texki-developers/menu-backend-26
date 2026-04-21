@@ -12,6 +12,9 @@ import { MenuModule } from './modules/menu/menu.module';
 import { ProductsModule } from './modules/products/products.module';
 import { MenuItemsModule } from './modules/menu-items/menu-items.module';
 import { OrdersModule } from './modules/orders/orders.module';
+import { CustomerMenuModule } from './modules/customer-menu/customer-menu.module';
+import { CartModule } from './modules/cart/cart.module';
+import { FiltersModule } from './modules/filters/filters.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
 import { ThrottlerModule } from '@nestjs/throttler';
@@ -73,6 +76,9 @@ import { OrganizationScopeGuard } from './common/guards/organization-scope.guard
     ProductsModule,
     MenuItemsModule,
     OrdersModule,
+    CustomerMenuModule,
+    CartModule,
+    FiltersModule,
   ],
   controllers: [],
   providers: [

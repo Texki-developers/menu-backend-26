@@ -13,6 +13,10 @@ export class Category extends Document {
     @Prop({ type: String, enum: CategoryIcon, default: CategoryIcon.UTENSILS_CROSSED })
     icon: CategoryIcon;
 
+    /** Optional image shown on the customer-facing category strip. Falls back to icon when absent. */
+    @Prop({ type: String, required: false })
+    image_url?: string;
+
     @Prop({ type: Boolean, default: true })
     isActive: boolean;
 

@@ -14,6 +14,11 @@ export class CreateCategoryDto {
     icon?: CategoryIcon;
 
     @IsOptional()
+    @IsString()
+    @ApiPropertyOptional({ example: 'https://cdn.example.com/categories/pizza.jpg', description: 'Public image URL' })
+    image_url?: string;
+
+    @IsOptional()
     @IsBoolean()
     @ApiPropertyOptional({ example: true, default: true })
     isActive?: boolean;

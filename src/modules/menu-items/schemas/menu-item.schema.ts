@@ -79,6 +79,64 @@ export class MenuItem extends Document {
   @Prop({ type: Array, default: [] })
   media?: any[];
 
+  // ── Variants (sizes) ──────────────────────────────────────────
+  /**
+   * Size / portion variants. When present, the customer MUST choose one.
+   * Price is absolute (not a delta) — cart stores variant_uuid.
+   */
+  @Prop({
+    type: [
+      {
+        variant_uuid: { type: String, required: true },
+        label: { type: String, required: true },
+        price: { type: Number, required: true },
+        is_default: { type: Boolean, default: false },
+        sort_order: { type: Number, default: 0 },
+        is_available: { type: Boolean, default: true },
+      },
+    ],
+    default: [],
+  })
+  variants: {
+    variant_uuid: string;
+    label: string;
+    price: number;
+    is_default: boolean;
+    sort_order: number;
+    is_available: boolean;
+  }[];
+
+  // ── Extras (modifiers) ────────────────────────────────────────
+  /**
+   * Add-on modifiers (e.g. extra cheese). Price is absolute add-on cost.
+   * max_selectable caps how many can be picked; null = unlimited.
+   */
+  @Prop({
+    type: [
+      {
+        extra_uuid: { type: String, required: true },
+        label: { type: String, required: true },
+        price: { type: Number, required: true },
+        is_default: { type: Boolean, default: false },
+        sort_order: { type: Number, default: 0 },
+        is_available: { type: Boolean, default: true },
+      },
+    ],
+    default: [],
+  })
+  extras: {
+    extra_uuid: string;
+    label: string;
+    price: number;
+    is_default: boolean;
+    sort_order: number;
+    is_available: boolean;
+  }[];
+
+  /** Cap on how many extras a customer can select. Null = no cap. */
+  @Prop({ default: null })
+  max_extras?: number;
+
   created_at: Date;
   updated_at: Date;
 }

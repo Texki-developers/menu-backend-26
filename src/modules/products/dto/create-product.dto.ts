@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsEnum,
@@ -132,12 +133,12 @@ export class CreateProductDto {
   @ApiPropertyOptional({ type: NutritionalInfoDto })
   nutritional_info?: NutritionalInfoDto;
 
-  @IsOptional()
   @IsArray()
+  @ArrayMinSize(1, { message: 'At least one product image is required' })
   @ValidateNested({ each: true })
   @Type(() => ProductMediaDto)
-  @ApiPropertyOptional({ type: [ProductMediaDto] })
-  media?: ProductMediaDto[];
+  @ApiProperty({ type: [ProductMediaDto], description: 'At least one image is required' })
+  media: ProductMediaDto[];
 
   @IsOptional()
   @IsArray()

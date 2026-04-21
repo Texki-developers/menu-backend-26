@@ -97,6 +97,15 @@ export class Product extends Document {
     alt_text?: string;
   }[];
 
+  // ── Notes ─────────────────────────────────────────────────────
+  /** Highlighted callout shown on the detail page (e.g. "Chef's pick"). */
+  @Prop()
+  special_note?: string;
+
+  /** Warning displayed to the customer (e.g. contains alcohol / spicy). */
+  @Prop()
+  warning_note?: string;
+
   // ── Dietary / Allergens ───────────────────────────────────────
   @Prop({ type: [String], default: [] })
   tags: string[];
