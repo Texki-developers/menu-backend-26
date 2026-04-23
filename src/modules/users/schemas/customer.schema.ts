@@ -11,8 +11,8 @@ export class Customer extends Document {
   @Prop({ required: true })
   full_name: string;
 
-  @Prop({ required: true })
-  phone: string;
+  @Prop({ required: false })
+  phone?: string;
 
   @Prop({ required: true, unique: true })
   email: string;

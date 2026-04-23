@@ -12,6 +12,10 @@ import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
 import { AdminRegisterDto } from '../dto/admin-register.dto';
 import { USER_ROLES } from '../../../constants/user-roles.constant';
+import { LOGIN_METHODS } from '../../../constants/login-methods.constant';
+import { OtpService } from './otp.service';
+import { RequestEmailOtpDto } from '../dto/request-email-otp.dto';
+import { VerifyEmailOtpDto } from '../dto/verify-email-otp.dto';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +25,7 @@ export class AuthService {
     @InjectModel(Admin.name) private readonly adminModel: Model<Admin>,
     @InjectModel(Staff.name) private readonly staffModel: Model<Staff>,
     @InjectModel(Customer.name) private readonly customerModel: Model<Customer>,
+    private readonly otpService: OtpService,
   ) {}
 
   async generateTokens(payload: JwtPayload) {
@@ -174,6 +179,61 @@ export class AuthService {
         organizationId: payload.organizationId,
         branchId: payload.branchId,
       }
+    };
+  }
+
+  async customerRequestEmailOtp(dto: RequestEmailOtpDto) {
+    await this.otpService.requestEmailOtp(dto.email, dto.branch_id);
+    return { message: 'Verification code sent' };
+  }
+
+  async customerVerifyEmailOtp(dto: VerifyEmailOtpDto) {
+    const verified = await this.otpService.verifyEmailOtp(
+      dto.email,
+      dto.code,
+      dto.branch_id,
+    );
+
+    let customer = await this.customerModel.findOne({ email: verified.email });
+    let isNew = false;
+
+    if (!customer) {
+      isNew = true;
+      customer = new this.customerModel({
+        email: verified.email,
+        full_name: dto.full_name?.trim() || verified.email.split('@')[0],
+        organization_id: verified.organization_id,
+        branch_id: verified.branch_id,
+        is_verified: true,
+        login_method: LOGIN_METHODS.EMAIL_OTP,
+      });
+      await customer.save();
+    } else if (!customer.is_verified) {
+      customer.is_verified = true;
+      if (dto.full_name?.trim()) customer.full_name = dto.full_name.trim();
+      await customer.save();
+    }
+
+    const payload: JwtPayload = {
+      sub: customer._id.toString(),
+      email: customer.email,
+      role: USER_ROLES.CUSTOMER,
+      organizationId: customer.organization_id.toString(),
+      branchId: customer.branch_id.toString(),
+    };
+
+    const tokens = await this.generateTokens(payload);
+    return {
+      ...tokens,
+      is_new_user: isNew,
+      user: {
+        id: customer._id,
+        email: customer.email,
+        fullName: customer.full_name,
+        role: payload.role,
+        organizationId: payload.organizationId,
+        branchId: payload.branchId,
+      },
     };
   }
 
