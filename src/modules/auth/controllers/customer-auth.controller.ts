@@ -1,7 +1,7 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Res } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Req, Res } from '@nestjs/common';
 import { Public } from '../../../common/decorators/public.decorator';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
@@ -69,6 +69,21 @@ export class CustomerAuthController {
       is_new_user: result.is_new_user,
       user: result.user,
     };
+  }
+
+  @Public()
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Refresh access/refresh tokens using the refresh_token cookie' })
+  @ApiResponse({ status: 200, description: 'New tokens set in cookies' })
+  async refresh(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const refreshToken = request.cookies?.refresh_token;
+    const tokens = await this.authService.refreshTokens(refreshToken);
+    CookieUtils.setAuthCookies(response, tokens);
+    return { message: 'Token refreshed' };
   }
 
   @Post('logout')

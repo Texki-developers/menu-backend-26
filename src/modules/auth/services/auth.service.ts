@@ -237,6 +237,51 @@ export class AuthService {
     };
   }
 
+  async refreshTokens(refreshToken: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Missing refresh token');
+    }
+
+    let payload: JwtPayload;
+    try {
+      payload = await this.jwtService.verifyAsync<JwtPayload>(refreshToken, {
+        secret: this.configService.get('REFRESH_TOKEN_SECRET'),
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const userExists = await this.userExistsForPayload(payload);
+    if (!userExists) {
+      throw new UnauthorizedException('User no longer exists');
+    }
+
+    const nextPayload: JwtPayload = {
+      sub: payload.sub,
+      email: payload.email,
+      role: payload.role,
+      organizationId: payload.organizationId,
+      branchId: payload.branchId,
+      branchIds: payload.branchIds,
+    };
+
+    return this.generateTokens(nextPayload);
+  }
+
+  private async userExistsForPayload(payload: JwtPayload): Promise<boolean> {
+    switch (payload.role) {
+      case USER_ROLES.ORG_ADMIN:
+      case USER_ROLES.BRANCH_ADMIN:
+        return !!(await this.adminModel.exists({ _id: payload.sub }));
+      case USER_ROLES.STAFF:
+        return !!(await this.staffModel.exists({ _id: payload.sub }));
+      case USER_ROLES.CUSTOMER:
+        return !!(await this.customerModel.exists({ _id: payload.sub }));
+      default:
+        return false;
+    }
+  }
+
   async customerRegister(registerDto: RegisterDto) {
     const hashedPassword = await PasswordUtils.hash(registerDto.password);
     const customer = new this.customerModel({

@@ -21,6 +21,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { OrganizationScopeGuard } from './common/guards/organization-scope.guard';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { OrganizationScopeGuard } from './common/guards/organization-scope.guard
     CustomerMenuModule,
     CartModule,
     FiltersModule,
+    CloudinaryModule
   ],
   controllers: [],
   providers: [
@@ -92,4 +94,4 @@ import { OrganizationScopeGuard } from './common/guards/organization-scope.guard
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

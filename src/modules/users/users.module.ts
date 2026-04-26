@@ -4,8 +4,10 @@ import { Admin, AdminSchema } from './schemas/admin.schema';
 import { Staff, StaffSchema } from './schemas/staff.schema';
 import { Customer, CustomerSchema } from './schemas/customer.schema';
 import { UsersService } from './services/users.service';
+import { CustomerAddressService } from './services/customer-address.service';
 import { AdminManagementController } from './controllers/admin-management.controller';
 import { StaffManagementController } from './controllers/staff-management.controller';
+import { CustomerAddressController } from './controllers/customer-address.controller';
 import { OrganizationsModule } from '../organizations/organizations.module';
 
 @Module({
@@ -17,8 +19,12 @@ import { OrganizationsModule } from '../organizations/organizations.module';
       { name: Customer.name, schema: CustomerSchema },
     ]),
   ],
-  controllers: [AdminManagementController, StaffManagementController],
-  providers: [UsersService],
+  controllers: [
+    AdminManagementController,
+    StaffManagementController,
+    CustomerAddressController,
+  ],
+  providers: [UsersService, CustomerAddressService],
   exports: [MongooseModule, UsersService],
 })
 export class UsersModule {}
