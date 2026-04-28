@@ -17,6 +17,10 @@ export class Category extends Document {
     @Prop({ type: String, required: false })
     image_url?: string;
 
+    /** Cloudinary public_id for image_url; used to delete the asset when the image is replaced or the category removed. */
+    @Prop({ type: String, required: false })
+    image_public_id?: string;
+
     @Prop({ type: Boolean, default: true })
     isActive: boolean;
 

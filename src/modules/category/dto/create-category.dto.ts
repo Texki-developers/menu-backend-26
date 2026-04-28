@@ -19,6 +19,11 @@ export class CreateCategoryDto {
     image_url?: string;
 
     @IsOptional()
+    @IsString()
+    @ApiPropertyOptional({ description: 'Cloudinary public_id for image_url; used to delete the asset on replace/delete.' })
+    image_public_id?: string;
+
+    @IsOptional()
     @IsBoolean()
     @ApiPropertyOptional({ example: true, default: true })
     isActive?: boolean;

@@ -79,6 +79,7 @@ export class Product extends Document {
     type: [
       {
         url: { type: String, required: true },
+        public_id: { type: String },
         type: { type: String, enum: MediaType },
         format: { type: String, enum: MediaFormat },
         is_primary: { type: Boolean, default: false },
@@ -90,6 +91,7 @@ export class Product extends Document {
   })
   media: {
     url: string;
+    public_id?: string;
     type?: MediaType;
     format?: MediaFormat;
     is_primary?: boolean;

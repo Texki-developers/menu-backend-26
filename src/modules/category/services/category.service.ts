@@ -5,11 +5,13 @@ import { Category } from '../schema/category.schema';
 import { CreateCategoryDto } from '../dto/create-category.dto';
 import { UpdateCategoryDto } from '../dto/update-category.dto';
 import { handleDbError } from '../../../common/utils';
+import { CloudinaryService } from '../../../cloudinary/cloudinary.service';
 
 @Injectable()
 export class CategoryService {
     constructor(
         @InjectModel(Category.name) private categoryModel: Model<Category>,
+        private readonly cloudinaryService: CloudinaryService,
     ){}
 
     async createCategory(createCategoryDto: CreateCategoryDto, orgId: string, branchId: string): Promise<Category> {
@@ -63,6 +65,9 @@ export class CategoryService {
             if (branchId) {
                 filter.branch_id = branchId;
             }
+
+            const previous = await this.categoryModel.findOne(filter).lean<{ image_public_id?: string }>();
+
             const updatedCategory = await this.categoryModel.findOneAndUpdate(
                 filter,
                 { $set: updateData },
@@ -71,6 +76,11 @@ export class CategoryService {
 
             if (!updatedCategory) {
                 throw new NotFoundException('Category not found');
+            }
+
+            const previousPublicId = previous?.image_public_id;
+            if (previousPublicId && previousPublicId !== updatedCategory.image_public_id) {
+                await this.cloudinaryService.safeDelete(previousPublicId);
             }
 
             return updatedCategory;
@@ -91,6 +101,7 @@ export class CategoryService {
             if (!result) {
                 throw new NotFoundException('Category not found');
             }
+            await this.cloudinaryService.safeDelete(result.image_public_id);
             return result;
         } catch (error) {
             if (error instanceof NotFoundException) throw error;

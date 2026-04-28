@@ -22,6 +22,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { OrganizationScopeGuard } from './common/guards/organization-scope.guard';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -80,7 +81,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     CustomerMenuModule,
     CartModule,
     FiltersModule,
-    CloudinaryModule
+    CloudinaryModule,
+    UploadModule
   ],
   controllers: [],
   providers: [

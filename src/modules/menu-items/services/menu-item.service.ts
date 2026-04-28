@@ -7,11 +7,13 @@ import { UpdateMenuItemDto } from '../dto/update-menu-item.dto';
 import { GetAllMenuItemsDto } from '../dto/get-all-menu-items.dto';
 import { SortOrder } from '../../../common/interfaces/pagination.interface';
 import { handleDbError, paginate } from '../../../common/utils';
+import { CloudinaryService } from '../../../cloudinary/cloudinary.service';
 
 @Injectable()
 export class MenuItemService {
   constructor(
     @InjectModel(MenuItem.name) private menuItemModel: Model<MenuItem>,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async createMenuItem(dto: CreateMenuItemDto, orgId: string, branchId: string): Promise<MenuItem> {
@@ -145,6 +147,12 @@ export class MenuItemService {
       }
       const result = await this.menuItemModel.findOneAndDelete(filter);
       if (!result) throw new NotFoundException('Menu item not found');
+
+      const overrideMedia = (result.media ?? []) as Array<{ public_id?: string }>;
+      await this.cloudinaryService.safeDeleteMany(
+        overrideMedia.map((m) => m?.public_id),
+      );
+
       return { message: 'Menu item deleted successfully', id };
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
