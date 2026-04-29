@@ -136,6 +136,5 @@ export class Product extends Document {
 export const ProductSchema = SchemaFactory.createForClass(Product);
 
 // ── Indexes ──────────────────────────────────────────────────────
-ProductSchema.index({ product_uuid: 1 }, { unique: true });
 ProductSchema.index({ organization_id: 1, slug: 1 });
 ProductSchema.index({ tags: 1 });

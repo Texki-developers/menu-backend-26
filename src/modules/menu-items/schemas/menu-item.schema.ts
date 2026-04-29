@@ -144,7 +144,6 @@ export class MenuItem extends Document {
 export const MenuItemSchema = SchemaFactory.createForClass(MenuItem);
 
 // ── Indexes ──────────────────────────────────────────────────────
-MenuItemSchema.index({ menu_item_uuid: 1 }, { unique: true });
 MenuItemSchema.index({ menu_id: 1, category_id: 1 });
 MenuItemSchema.index({ organization_id: 1, branch_id: 1 });
 MenuItemSchema.index({ product_id: 1 });

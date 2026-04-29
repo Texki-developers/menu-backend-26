@@ -43,6 +43,11 @@ class ProductMediaDto {
   url: string;
 
   @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({ example: 'organizations/123/products/abc' })
+  public_id?: string;
+
+  @IsOptional()
   @IsEnum(MediaType)
   @ApiPropertyOptional({ enum: MediaType })
   type?: MediaType;
@@ -67,6 +72,7 @@ class ProductMediaDto {
   @ApiPropertyOptional({ example: 'Grilled Chicken Burger' })
   alt_text?: string;
 }
+
 
 export class CreateProductDto {
   @IsNotEmpty()
@@ -151,6 +157,17 @@ export class CreateProductDto {
   @IsString({ each: true })
   @ApiPropertyOptional({ example: ['gluten', 'dairy'], type: [String] })
   allergens?: string[];
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({ example: "Chef's pick" })
+  special_note?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({ example: "Contains nuts" })
+  warning_note?: string;
+
 
   @IsOptional()
   @IsBoolean()
