@@ -14,4 +14,4 @@ import { CloudinaryModule } from '../../cloudinary/cloudinary.module';
   providers: [CategoryService],
   exports: [MongooseModule]
 })
-export class CategoryModule {}
+export class CategoryModule {} 
