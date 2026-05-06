@@ -1,11 +1,11 @@
 import { NestFactory } from "@nestjs/core";
 import { MigrationsModule } from "./migrations.module";
-import { AddCitySlugMigration } from "./add-city-slug.migration";
+import { NormalizeBranchOrganizationIdMigration } from "./normalize-branch-organization-id.migration";
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(MigrationsModule);
 
-  const migration = app.get(AddCitySlugMigration);
+  const migration = app.get(NormalizeBranchOrganizationIdMigration);
 
   await migration.run();
 

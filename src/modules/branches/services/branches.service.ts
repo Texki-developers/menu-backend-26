@@ -3,7 +3,6 @@ import * as express from 'express';
 import { InjectModel } from '@nestjs/mongoose';
 import { Branch } from '../schema/branches.schema';
 import { Model } from 'mongoose';
-import * as mongoose from 'mongoose';
 import { CreateBranchDto } from '../dto/create-branches.dto';
 import { UpdateBranchDto } from '../dto/update-branches.dto';
 import { handleDbError, escapeRegex, paginate } from '../../../common/utils';
@@ -31,9 +30,7 @@ export class BranchService {
             // 1. Build Filter Objects
             const baseFilter: Record<string, any> = {};
             if (organization_id) {
-                baseFilter.organization_id = { 
-                    $in: [new mongoose.Types.ObjectId(organization_id), organization_id] 
-                };
+                baseFilter.organization_id = organization_id;
             }
 
             const searchFilter: Record<string, any> = {};
@@ -73,9 +70,7 @@ export class BranchService {
 
     async downloadBranchesCsv(res: any, organizationId?: string) {
         try {
-            const filter = organizationId ? { 
-                organization_id: { $in: [new mongoose.Types.ObjectId(organizationId), organizationId] } 
-            } : {};
+            const filter = organizationId ? { organization_id: organizationId } : {};
             const branches = await this.branchModel.find(filter).lean();
             
             const headers = ['Name', 'Email', 'Phone', 'Branch Type', 'City', 'Street', 'Status', 'Created At'];

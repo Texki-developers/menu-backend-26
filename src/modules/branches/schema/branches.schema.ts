@@ -14,8 +14,8 @@ export class Branch extends Document {
     @Prop({required:true,unique:true,index:true})
     phone:string;
 
-    @Prop({ type:Types.ObjectId, ref:'organizations', required:true})
-    organization_id:Types.ObjectId;
+    @Prop({ type: String, ref: 'organizations', required: true, index: true })
+    organization_id: string;
 
     @Prop({required:true,unique:true,index:true})
     email:string;

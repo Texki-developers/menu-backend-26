@@ -5,6 +5,7 @@ import * as Joi from 'joi';
 import { UpdateStatusMigration } from "./update-status.migration";
 import { Branch, BranchSchema } from "../modules/branches/schema/branches.schema";
 import { AddCitySlugMigration } from "./add-city-slug.migration";
+import { NormalizeBranchOrganizationIdMigration } from "./normalize-branch-organization-id.migration";
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { AddCitySlugMigration } from "./add-city-slug.migration";
       { name: Branch.name, schema: BranchSchema },
     ]),
   ],
-  providers: [UpdateStatusMigration, AddCitySlugMigration],
-  exports: [UpdateStatusMigration, AddCitySlugMigration],
+  providers: [UpdateStatusMigration, AddCitySlugMigration, NormalizeBranchOrganizationIdMigration],
+  exports: [UpdateStatusMigration, AddCitySlugMigration, NormalizeBranchOrganizationIdMigration],
 })
 export class MigrationsModule {}

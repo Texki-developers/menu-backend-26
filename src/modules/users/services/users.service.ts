@@ -13,6 +13,7 @@ import { paginate } from '../../../common/utils/pagination.utils';
 import { handleDbError } from '../../../common/utils/db-error.utils';
 import { SortOrder } from '../../../common/interfaces/pagination.interface';
 import { UpdateStaffDto } from '../dto/update-staff.dto';
+import { GetAllCustomersDto } from '../dto/get-all-customers.dto';
 import { USER_ROLES, UserRole } from '../../../constants/user-roles.constant';
 import { escapeRegex } from '../../../common/utils/regex.utils';
 
@@ -207,6 +208,51 @@ export class UsersService {
       return res.status(200).send(csvContent);
     } catch (error) {
       handleDbError(error, 'downloading staff csv');
+      throw error;
+    }
+  }
+
+  async getAllCustomers(queryDto: GetAllCustomersDto) {
+    try {
+      const baseFilter: Record<string, any> = {};
+      if (queryDto.organization_id) {
+        baseFilter.organization_id = { $in: [new Types.ObjectId(queryDto.organization_id), queryDto.organization_id] };
+      }
+      if (queryDto.branch_id) {
+        baseFilter.branch_id = { $in: [new Types.ObjectId(queryDto.branch_id), queryDto.branch_id] };
+      }
+      const searchFilter: Record<string, any> = {};
+      if (queryDto.is_verified !== undefined) searchFilter.is_verified = queryDto.is_verified;
+      if (queryDto.query) {
+        const safeQuery = escapeRegex(queryDto.query);
+        searchFilter.$or = [
+          { full_name: { $regex: safeQuery, $options: 'i' } },
+          { email: { $regex: safeQuery, $options: 'i' } },
+          { phone: { $regex: safeQuery, $options: 'i' } },
+        ];
+      }
+      return await paginate(this.customerModel, {
+        page: queryDto.page,
+        limit: queryDto.limit,
+        sortBy: queryDto.sortBy || 'created_at',
+        sortOrder: (queryDto.sortOrder?.toUpperCase() as SortOrder) || SortOrder.DESC,
+        baseFilter,
+        searchFilter,
+      });
+    } catch (error) {
+      handleDbError(error, 'getting all customers');
+      throw error;
+    }
+  }
+
+  async getCustomerById(id: string): Promise<Customer> {
+    try {
+      const customer = await this.customerModel.findById(id).exec();
+      if (!customer) throw new NotFoundException(`Customer with ID ${id} not found`);
+      return customer;
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      handleDbError(error, `getting customer with ID ${id}`);
       throw error;
     }
   }
