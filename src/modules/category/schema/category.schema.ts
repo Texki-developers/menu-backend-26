@@ -38,3 +38,6 @@ export class Category extends Document {
 }
 
 export const CategorySchema = SchemaFactory.createForClass(Category);
+
+CategorySchema.index({ organization_id: 1, branch_id: 1 });
+CategorySchema.index({ menuId: 1 });

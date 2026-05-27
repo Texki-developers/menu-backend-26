@@ -145,6 +145,6 @@ export const MenuItemSchema = SchemaFactory.createForClass(MenuItem);
 
 // ── Indexes ──────────────────────────────────────────────────────
 MenuItemSchema.index({ menu_id: 1, category_id: 1 });
-MenuItemSchema.index({ organization_id: 1, branch_id: 1 });
+MenuItemSchema.index({ organization_id: 1, branch_id: 1, is_available: 1, sort_order: 1 });
 MenuItemSchema.index({ product_id: 1 });
 MenuItemSchema.index({ is_available: 1, menu_id: 1 });

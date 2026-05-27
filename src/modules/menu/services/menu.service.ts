@@ -8,6 +8,7 @@ import { GetAllMenusDto } from '../dto/get-all-menus.dto';
 import { SortOrder } from '../../../common/interfaces/pagination.interface';
 import { handleDbError, escapeRegex, paginate } from '../../../common/utils';
 import { Category } from '../../category/schema/category.schema';
+import { isMenuActiveAt } from '../utils/menu-schedule';
 
 @Injectable()
 export class MenuService {
@@ -63,7 +64,7 @@ export class MenuService {
             }
 
             // 2. Execute Paginated Search
-            return await paginate(this.menuModel, {
+            const result = await paginate(this.menuModel, {
                 page,
                 limit,
                 sortBy,
@@ -77,6 +78,14 @@ export class MenuService {
                     ]
                 }
             });
+
+            const now = new Date();
+            const data = (result.data as any[]).map((m) => ({
+                ...m,
+                is_currently_active:
+                    m.status === 'active' && m.isActive !== false && isMenuActiveAt(m.schedule, now),
+            }));
+            return { ...result, data };
         } catch (error) {
             handleDbError(error, 'getting all menus');
             throw error;
@@ -119,7 +128,12 @@ export class MenuService {
                 throw new NotFoundException('Menu not found');
             }
 
-            return results[0];
+            const menu = results[0];
+            return {
+                ...menu,
+                is_currently_active:
+                    menu.status === 'active' && menu.isActive !== false && isMenuActiveAt(menu.schedule),
+            };
         } catch (error) {
             if (error instanceof NotFoundException) throw error;
             handleDbError(error, 'getting the menu by id');

@@ -11,14 +11,14 @@ export class CookieUtils {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'lax',
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: 60 * 60 * 1000, // 1 hour — matches JWT_EXPIRATION
     });
 
     response.cookie('refresh_token', tokens.refresh_token, {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days — matches REFRESH_TOKEN_EXPIRATION
     });
   }
 

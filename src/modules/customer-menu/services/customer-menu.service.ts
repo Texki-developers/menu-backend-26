@@ -4,8 +4,11 @@ import { Model, Types, isValidObjectId } from 'mongoose';
 import { Branch } from '../../branches/schema/branches.schema';
 import { Category } from '../../category/schema/category.schema';
 import { MenuItem } from '../../menu-items/schemas/menu-item.schema';
+import { Menu } from '../../menu/schema/menu.schema';
 import { Product } from '../../products/schemas/product.schema';
 import { BranchStatus } from '../../branches/constants/constant';
+import { MenuStatus } from '../../menu/constants/constant';
+import { isMenuActiveAt } from '../../menu/utils/menu-schedule';
 import {
   CustomerCategoryDto,
   CustomerMenuItemDto,
@@ -20,6 +23,7 @@ import { handleDbError } from '../../../common/utils';
 interface RawMenuItem {
   _id: Types.ObjectId | string;
   product_id: string;
+  menu_id: string;
   category_id: string;
   base_price: number;
   selling_price: number;
@@ -41,6 +45,7 @@ export class CustomerMenuService {
     @InjectModel(Branch.name) private readonly branchModel: Model<Branch>,
     @InjectModel(Category.name) private readonly categoryModel: Model<Category>,
     @InjectModel(MenuItem.name) private readonly menuItemModel: Model<MenuItem>,
+    @InjectModel(Menu.name) private readonly menuModel: Model<Menu>,
     @InjectModel(Product.name) private readonly productModel: Model<Product>,
   ) {}
 
@@ -76,14 +81,26 @@ export class CustomerMenuService {
           .lean(),
       ]);
 
-      const productIds = Array.from(new Set(menuItems.map((m) => m.product_id)));
+      // Filter menu items to those whose parent Menu is currently active (status, isActive, schedule).
+      const menuIds = Array.from(new Set(menuItems.map((m) => m.menu_id).filter(Boolean)));
+      const menus = menuIds.length
+        ? await this.menuModel
+            .find({ _id: { $in: menuIds }, status: MenuStatus.ACTIVE, isActive: true })
+            .lean()
+        : [];
+      const activeMenuIds = new Set(
+        menus.filter((m) => isMenuActiveAt(m.schedule)).map((m) => m._id?.toString()),
+      );
+      const activeItems = menuItems.filter((m) => activeMenuIds.has(m.menu_id?.toString()));
+
+      const productIds = Array.from(new Set(activeItems.map((m) => m.product_id)));
       const products = await this.productModel
         .find({ _id: { $in: productIds }, is_deleted: { $ne: true } })
         .lean();
       const productById = new Map(products.map((p) => [p._id?.toString(), p]));
 
       const itemsByCategory = new Map<string, CustomerMenuItemDto[]>();
-      for (const item of menuItems) {
+      for (const item of activeItems) {
         const product = productById.get(item.product_id?.toString());
         if (!product) continue;
 

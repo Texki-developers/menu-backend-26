@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Branch, BranchSchema } from '../branches/schema/branches.schema';
 import { Category, CategorySchema } from '../category/schema/category.schema';
 import { MenuItem, MenuItemSchema } from '../menu-items/schemas/menu-item.schema';
+import { Menu, MenuSchema } from '../menu/schema/menu.schema';
 import { Product, ProductSchema } from '../products/schemas/product.schema';
 import { CustomerMenuController } from './controllers/customer-menu.controller';
 import { CustomerMenuService } from './services/customer-menu.service';
@@ -13,6 +14,7 @@ import { CustomerMenuService } from './services/customer-menu.service';
       { name: Branch.name, schema: BranchSchema },
       { name: Category.name, schema: CategorySchema },
       { name: MenuItem.name, schema: MenuItemSchema },
+      { name: Menu.name, schema: MenuSchema },
       { name: Product.name, schema: ProductSchema },
     ]),
   ],

@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document } from 'mongoose';
 import { MediaFormat, MediaType, ProductType, SpiceLevel } from '../constants/constant';
 
 @Schema({
@@ -123,11 +123,8 @@ export class Product extends Document {
   is_deleted: boolean;
 
   // ── Tenant ────────────────────────────────────────────────────
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, index: true })
   organization_id: string;
-
-  @Prop({ type: String, required: false })
-  branch_id?: string;
 
   created_at: Date;
   updated_at: Date;
