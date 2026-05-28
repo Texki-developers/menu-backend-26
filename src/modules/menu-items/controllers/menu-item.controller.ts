@@ -15,8 +15,8 @@ import { MenuItemService } from '../services/menu-item.service';
 import { CreateMenuItemDto } from '../dto/create-menu-item.dto';
 import { UpdateMenuItemDto } from '../dto/update-menu-item.dto';
 import { GetAllMenuItemsDto } from '../dto/get-all-menu-items.dto';
-import { OrgId } from 'src/common/decorators/org-id.decorator';
-import { BranchId } from 'src/common/decorators/branch-id.decorator';
+import { OrgId } from '../../../common/decorators/org-id.decorator';
+import { BranchId } from '../../../common/decorators/branch-id.decorator';
 import { MenuItem } from '../schemas/menu-item.schema';
 
 @ApiTags('menu-items')

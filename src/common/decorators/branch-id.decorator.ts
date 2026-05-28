@@ -1,5 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { USER_ROLES } from 'src/constants/user-roles.constant';
+import { USER_ROLES } from '../../constants/user-roles.constant';
 
 export const BranchId = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {

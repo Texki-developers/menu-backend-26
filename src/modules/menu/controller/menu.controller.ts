@@ -5,8 +5,8 @@ import { UpdateMenuDto } from '../dto/update-menu.dto';
 import { GetAllMenusDto } from '../dto/get-all-menus.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Menu } from '../schema/menu.schema';
-import { OrgId } from 'src/common/decorators/org-id.decorator';
-import { BranchId } from 'src/common/decorators/branch-id.decorator';
+import { OrgId } from '../../../common/decorators/org-id.decorator';
+import { BranchId } from '../../../common/decorators/branch-id.decorator';
 
 @ApiTags('menu')
 @Controller('menu')

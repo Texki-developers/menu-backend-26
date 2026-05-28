@@ -16,7 +16,7 @@ import { ProductService } from '../services/product.service';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { GetAllProductsDto } from '../dto/get-all-products.dto';
-import { OrgId } from 'src/common/decorators/org-id.decorator';
+import { OrgId } from '../../../common/decorators/org-id.decorator';
 import { Product } from '../schemas/product.schema';
 
 @ApiTags('products')

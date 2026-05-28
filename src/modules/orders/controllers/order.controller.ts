@@ -18,8 +18,8 @@ import { OrderService } from '../services/order.service';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { GetAllOrdersDto } from '../dto/get-all-orders.dto';
 import { UpdateOrderStatusDto } from '../dto/update-order-status.dto';
-import { OrgId } from 'src/common/decorators/org-id.decorator';
-import { BranchId } from 'src/common/decorators/branch-id.decorator';
+import { OrgId } from '../../../common/decorators/org-id.decorator';
+import { BranchId } from '../../../common/decorators/branch-id.decorator';
 import { Order } from '../schemas/order.schema';
 
 @ApiTags('orders')

@@ -2,8 +2,8 @@ import { Body, Controller, Post, HttpCode, HttpStatus, Get, Patch, Param, Delete
 import { CategoryService } from '../services/category.service';
 import { CreateCategoryDto } from '../dto/create-category.dto';
 import { UpdateCategoryDto } from '../dto/update-category.dto';
-import { OrgId } from 'src/common/decorators/org-id.decorator';
-import { BranchId } from 'src/common/decorators/branch-id.decorator';
+import { OrgId } from '../../../common/decorators/org-id.decorator';
+import { BranchId } from '../../../common/decorators/branch-id.decorator';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Category } from '../schema/category.schema';
 
