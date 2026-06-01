@@ -83,9 +83,12 @@ export class CustomerMenuService {
 
       // Filter menu items to those whose parent Menu is currently active (status, isActive, schedule).
       const menuIds = Array.from(new Set(menuItems.map((m) => m.menu_id).filter(Boolean)));
-      const menus = menuIds.length
+      const menuObjectIds = menuIds
+        .filter((id) => isValidObjectId(id))
+        .map((id) => new Types.ObjectId(id));
+      const menus = menuObjectIds.length
         ? await this.menuModel
-            .find({ _id: { $in: menuIds }, status: MenuStatus.ACTIVE, isActive: true })
+            .find({ _id: { $in: menuObjectIds }, status: MenuStatus.ACTIVE, isActive: true })
             .lean()
         : [];
       const activeMenuIds = new Set(
@@ -94,8 +97,11 @@ export class CustomerMenuService {
       const activeItems = menuItems.filter((m) => activeMenuIds.has(m.menu_id?.toString()));
 
       const productIds = Array.from(new Set(activeItems.map((m) => m.product_id)));
+      const productObjectIds = productIds
+        .filter((id) => isValidObjectId(id))
+        .map((id) => new Types.ObjectId(id));
       const products = await this.productModel
-        .find({ _id: { $in: productIds }, is_deleted: { $ne: true } })
+        .find({ _id: { $in: productObjectIds }, is_deleted: { $ne: true } })
         .lean();
       const productById = new Map(products.map((p) => [p._id?.toString(), p]));
 
