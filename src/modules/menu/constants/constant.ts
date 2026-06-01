@@ -5,6 +5,6 @@ export enum MenuType {
 }
 
 export enum MenuStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
 }
