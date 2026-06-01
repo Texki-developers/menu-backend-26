@@ -20,7 +20,7 @@ export class CookieUtils {
       httpOnly: true,
       secure,
       sameSite,
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days — matches REFRESH_TOKEN_EXPIRATION
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days — matches REFRESH_TOKEN_EXPIRATION
     });
   }
 

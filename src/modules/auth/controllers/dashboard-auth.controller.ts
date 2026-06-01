@@ -1,9 +1,7 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import type { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { LoginDto } from '../dto/login.dto';
-import { CookieUtils } from '../../../common/utils';
 import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 
 import { Public } from '../../../common/decorators/public.decorator';
@@ -18,17 +16,15 @@ export class DashboardAuthController {
   @Post('login')
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Unified Admin/Staff login (sets HttpOnly cookies)' })
-  @ApiResponse({ status: 200, description: 'Login successful, tokens set in cookies' })
-  async login(
-    @Body() loginDto: LoginDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
+  @ApiOperation({ summary: 'Unified Admin/Staff login (returns Bearer tokens)' })
+  @ApiResponse({ status: 200, description: 'Login successful, tokens returned in response body' })
+  async login(@Body() loginDto: LoginDto) {
     const result = await this.authService.dashboardLogin(loginDto);
-    CookieUtils.setAuthCookies(response, result);
-    return { 
+    return {
       message: 'Login successful',
-      user: result.user 
+      user: result.user,
+      access_token: result.access_token,
+      refresh_token: result.refresh_token,
     };
   }
 
@@ -36,24 +32,22 @@ export class DashboardAuthController {
   @Post('refresh')
   @Throttle({ default: { limit: 30, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Refresh access/refresh tokens using the refresh_token cookie' })
-  @ApiResponse({ status: 200, description: 'New tokens set in cookies' })
-  async refresh(
-    @Req() request: Request,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    const refreshToken = request.cookies?.refresh_token;
-    const tokens = await this.authService.refreshTokens(refreshToken);
-    CookieUtils.setAuthCookies(response, tokens);
-    return { message: 'Token refreshed' };
+  @ApiOperation({ summary: 'Refresh access/refresh tokens using refresh_token from body' })
+  @ApiResponse({ status: 200, description: 'New tokens returned in response body' })
+  async refresh(@Body() body: { refresh_token: string }) {
+    const tokens = await this.authService.refreshTokens(body?.refresh_token);
+    return {
+      message: 'Token refreshed',
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+    };
   }
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Dashboard logout (clears cookies)' })
-  @ApiResponse({ status: 200, description: 'Logout successful, cookies cleared' })
-  async logout(@Res({ passthrough: true }) response: Response) {
-    CookieUtils.clearAuthCookies(response);
-    return { message: 'Logged out successfully' };
+  @ApiOperation({ summary: 'Dashboard logout' })
+  @ApiResponse({ status: 200, description: 'Logout successful' })
+  async logout() {
+    return { message: 'Logged out' };
   }
 }
