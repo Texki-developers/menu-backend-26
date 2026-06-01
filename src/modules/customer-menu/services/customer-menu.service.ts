@@ -18,6 +18,16 @@ import {
   GetProductDetailResponseDto,
   ProductDetailDto,
 } from '../dto/get-product-detail.dto';
+import {
+  CustomerMenuListItemDto,
+  ListMenusResponseDto,
+} from '../dto/list-menus.dto';
+import {
+  CustomerCategoryListItemDto,
+  ListCategoriesResponseDto,
+} from '../dto/list-categories.dto';
+import { ListItemsResponseDto } from '../dto/list-items.dto';
+import { GetBranchResponseDto } from '../dto/get-branch.dto';
 import { handleDbError } from '../../../common/utils';
 
 interface RawMenuItem {
@@ -168,6 +178,36 @@ export class CustomerMenuService {
     }
   }
 
+  async getBranch(branchId: string): Promise<GetBranchResponseDto> {
+    if (!isValidObjectId(branchId)) {
+      throw new BadRequestException('Invalid branchId');
+    }
+    try {
+      const branch = await this.branchModel.findById(branchId).lean();
+      if (!branch || branch.status !== BranchStatus.ACTIVE) {
+        throw new NotFoundException('Branch not found or inactive');
+      }
+      return {
+        branch: {
+          id: branch._id?.toString() ?? branchId,
+          name: branch.name,
+          organization_id: branch.organization_id?.toString() ?? '',
+          phone: branch.phone,
+          email: branch.email,
+          address_detail: branch.address_detail as unknown as Record<string, unknown>,
+          operating_hours: branch.operating_hours as unknown as Record<string, unknown>[],
+          status: branch.status,
+        },
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      handleDbError(error, 'getting the branch');
+      throw error;
+    }
+  }
+
   async getProductDetail(
     branchId: string,
     slug: string,
@@ -259,6 +299,223 @@ export class CustomerMenuService {
         throw error;
       }
       handleDbError(error, 'getting the product detail');
+      throw error;
+    }
+  }
+
+  async listMenus(branchId: string): Promise<ListMenusResponseDto> {
+    if (!isValidObjectId(branchId)) {
+      throw new BadRequestException('Invalid branchId');
+    }
+
+    try {
+      const branch = await this.branchModel.findById(branchId).lean();
+      if (!branch || branch.status !== BranchStatus.ACTIVE) {
+        throw new NotFoundException('Branch not found or inactive');
+      }
+
+      const menus = await this.menuModel
+        .find({
+          branch_id: branchId,
+          status: MenuStatus.ACTIVE,
+          isActive: true,
+        })
+        .sort({ name: 1 })
+        .lean();
+
+      const items: CustomerMenuListItemDto[] = menus.map((m) => ({
+        id: m._id?.toString() ?? '',
+        name: m.name,
+        type: m.type,
+        description: m.description,
+        schedule: m.schedule ?? [],
+        is_currently_active: isMenuActiveAt(m.schedule),
+      }));
+
+      return { menus: items };
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      handleDbError(error, 'listing branch menus');
+      throw error;
+    }
+  }
+
+  async listCategoriesForMenu(
+    branchId: string,
+    menuId: string,
+  ): Promise<ListCategoriesResponseDto> {
+    if (!isValidObjectId(branchId)) {
+      throw new BadRequestException('Invalid branchId');
+    }
+    if (!isValidObjectId(menuId)) {
+      throw new BadRequestException('Invalid menuId');
+    }
+
+    try {
+      const branch = await this.branchModel.findById(branchId).lean();
+      if (!branch || branch.status !== BranchStatus.ACTIVE) {
+        throw new NotFoundException('Branch not found or inactive');
+      }
+
+      const menu = await this.menuModel.findById(menuId).lean();
+      if (
+        !menu ||
+        menu.branch_id?.toString() !== branchId ||
+        menu.status !== MenuStatus.ACTIVE ||
+        !menu.isActive
+      ) {
+        throw new NotFoundException('Menu not found or inactive');
+      }
+
+      const menuItems = await this.menuItemModel
+        .find({
+          branch_id: branchId,
+          menu_id: menuId,
+          is_available: true,
+        })
+        .lean<RawMenuItem[]>();
+
+      const countByCategory = new Map<string, number>();
+      for (const item of menuItems) {
+        const key = item.category_id?.toString();
+        if (!key) continue;
+        countByCategory.set(key, (countByCategory.get(key) ?? 0) + 1);
+      }
+
+      const categoryIds = Array.from(countByCategory.keys());
+      const categoryObjectIds = categoryIds
+        .filter((id) => isValidObjectId(id))
+        .map((id) => new Types.ObjectId(id));
+
+      const categories = categoryObjectIds.length
+        ? await this.categoryModel
+            .find({
+              _id: { $in: categoryObjectIds },
+              branch_id: branchId,
+              isActive: true,
+            })
+            .sort({ name: 1 })
+            .lean()
+        : [];
+
+      const result: CustomerCategoryListItemDto[] = categories.map((cat) => ({
+        id: cat._id?.toString() ?? '',
+        name: cat.name,
+        icon: cat.icon,
+        image_url: cat.image_url,
+        item_count: countByCategory.get(cat._id?.toString() ?? '') ?? 0,
+      }));
+
+      return { categories: result };
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      handleDbError(error, 'listing categories for menu');
+      throw error;
+    }
+  }
+
+  async listItemsForCategory(
+    branchId: string,
+    categoryId: string,
+    menuId: string,
+  ): Promise<ListItemsResponseDto> {
+    if (!menuId) {
+      throw new BadRequestException('menuId query param is required');
+    }
+    if (!isValidObjectId(branchId)) {
+      throw new BadRequestException('Invalid branchId');
+    }
+    if (!isValidObjectId(categoryId)) {
+      throw new BadRequestException('Invalid categoryId');
+    }
+    if (!isValidObjectId(menuId)) {
+      throw new BadRequestException('Invalid menuId');
+    }
+
+    try {
+      const branch = await this.branchModel.findById(branchId).lean();
+      if (!branch || branch.status !== BranchStatus.ACTIVE) {
+        throw new NotFoundException('Branch not found or inactive');
+      }
+
+      const category = await this.categoryModel.findById(categoryId).lean();
+      if (
+        !category ||
+        category.branch_id?.toString() !== branchId ||
+        !category.isActive
+      ) {
+        throw new NotFoundException('Category not found or inactive');
+      }
+
+      const menu = await this.menuModel.findById(menuId).lean();
+      if (
+        !menu ||
+        menu.branch_id?.toString() !== branchId ||
+        menu.status !== MenuStatus.ACTIVE ||
+        !menu.isActive
+      ) {
+        throw new NotFoundException('Menu not found or inactive');
+      }
+
+      const menuItems = await this.menuItemModel
+        .find({
+          branch_id: branchId,
+          menu_id: menuId,
+          category_id: categoryId,
+          is_available: true,
+        })
+        .sort({ sort_order: 1 })
+        .lean<RawMenuItem[]>();
+
+      const productIds = Array.from(new Set(menuItems.map((m) => m.product_id)));
+      const productObjectIds = productIds
+        .filter((id) => isValidObjectId(id))
+        .map((id) => new Types.ObjectId(id));
+
+      const products = productObjectIds.length
+        ? await this.productModel
+            .find({ _id: { $in: productObjectIds }, is_deleted: { $ne: true } })
+            .lean()
+        : [];
+      const productById = new Map(products.map((p) => [p._id?.toString(), p]));
+
+      const items: CustomerMenuItemDto[] = [];
+      for (const item of menuItems) {
+        const product = productById.get(item.product_id?.toString());
+        if (!product) continue;
+
+        items.push({
+          id: item._id.toString(),
+          product_id: item.product_id,
+          name: product.name,
+          slug: product.slug,
+          description: product.description,
+          type: product.type,
+          spice_level: product.spice_level,
+          is_featured: item.is_featured,
+          calories: product.calories,
+          tags: product.tags ?? [],
+          allergens: product.allergens ?? [],
+          base_price: item.base_price,
+          selling_price: item.selling_price,
+          discount_price: item.discount_price,
+          is_available: item.is_available,
+          prep_time: item.prep_time,
+          max_quantity: item.max_quantity,
+          media: (item.media?.length ? item.media : product.media) ?? [],
+        });
+      }
+
+      return { items };
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      handleDbError(error, 'listing items for category');
       throw error;
     }
   }
