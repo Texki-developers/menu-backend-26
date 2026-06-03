@@ -32,6 +32,7 @@ export class MenuService {
     }
 
     async getAllMenus(getAllMenusDto: GetAllMenusDto, orgId: string, branchId: string) {
+        console.log("🚀 ~ MenuService ~ getAllMenus ~ getAllMenusDto:", {getAllMenusDto,orgId,branchId})
         try {
             const { 
                 query, 
