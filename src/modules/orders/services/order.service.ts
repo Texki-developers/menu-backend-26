@@ -1,18 +1,26 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, isValidObjectId } from 'mongoose';
 import { Order, OrderStatus } from '../schemas/order.schema';
 import { CreateOrderDto } from '../dto/create-order.dto';
+import { PublicCheckoutDto } from '../dto/public-checkout.dto';
 import { handleDbError, paginate } from '../../../common/utils';
 import { GetAllOrdersDto } from '../dto/get-all-orders.dto';
 import { SortOrder } from '../../../common/interfaces/pagination.interface';
+import { CartService } from '../../cart/services/cart.service';
 
 @Injectable()
 export class OrderService {
   constructor(
     @InjectModel(Order.name) private orderModel: Model<Order>,
     private readonly eventEmitter: EventEmitter2,
+    private readonly cartService: CartService,
   ) {}
 
   async createOrder(dto: CreateOrderDto, orgId: string, branchId: string): Promise<Order> {
@@ -140,6 +148,92 @@ export class OrderService {
         throw error;
       }
       handleDbError(error, 'updating the order status');
+      throw error;
+    }
+  }
+
+  /**
+   * Guest checkout: turns the active cart (resolved from the cart token) into a
+   * frozen order, then clears the cart. No authentication required — org/branch
+   * are derived from the cart, prices are frozen at this moment.
+   */
+  async checkoutFromCart(
+    branchId: string,
+    cartToken: string,
+    dto: PublicCheckoutDto,
+  ): Promise<Order> {
+    if (!cartToken) {
+      throw new BadRequestException('Missing cart token');
+    }
+
+    const cart = await this.cartService.getCart(branchId, {
+      cart_token: cartToken,
+    });
+
+    const availableLines = cart.items.filter((l) => l.is_available);
+    if (availableLines.length === 0) {
+      throw new BadRequestException(
+        'Your cart is empty or its items are no longer available',
+      );
+    }
+
+    try {
+      const items = availableLines.map((l) => ({
+        menu_item_id: l.menu_item_id,
+        name: l.name,
+        quantity: l.quantity,
+        unit_price: l.unit_price,
+        total_price: l.unit_price * l.quantity,
+      }));
+      const total_amount = items.reduce((sum, i) => sum + i.total_price, 0);
+
+      const order = new this.orderModel({
+        order_uuid: `order_${crypto.randomUUID()}`,
+        organization_id: cart.organization_id,
+        branch_id: branchId,
+        items,
+        total_amount,
+        status: OrderStatus.PENDING,
+        order_type: dto.order_type,
+        table_number: dto.table_number,
+        customer_name: dto.customer_name,
+        customer_phone: dto.customer_phone,
+        notes: dto.notes,
+      });
+
+      const savedOrder = await order.save();
+      this.eventEmitter.emit('order.created', savedOrder);
+
+      // Empty the cart now that it's been ordered.
+      await this.cartService.clearCart(branchId, { cart_token: cartToken });
+
+      return savedOrder;
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      handleDbError(error, 'placing the order');
+      throw error;
+    }
+  }
+
+  /** Public order lookup for the confirmation screen — scoped to its branch. */
+  async getPublicOrder(branchId: string, orderId: string): Promise<Order> {
+    if (!isValidObjectId(orderId)) {
+      throw new BadRequestException('Invalid order id');
+    }
+    try {
+      const order = await this.orderModel
+        .findOne({ _id: orderId, branch_id: branchId })
+        .exec();
+      if (!order) throw new NotFoundException('Order not found');
+      return order;
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      handleDbError(error, 'getting the order');
       throw error;
     }
   }

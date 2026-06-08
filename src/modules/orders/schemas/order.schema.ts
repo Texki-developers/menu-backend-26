@@ -9,6 +9,11 @@ export enum OrderStatus {
   CANCELLED = 'CANCELLED',
 }
 
+export enum OrderType {
+  DINE_IN = 'DINE_IN',
+  TAKEAWAY = 'TAKEAWAY',
+}
+
 @Schema({ _id: false })
 class OrderItem {
   @Prop({ required: true })
@@ -56,6 +61,13 @@ export class Order extends Document {
     default: OrderStatus.PENDING,
   })
   status: OrderStatus;
+
+  @Prop({
+    type: String,
+    enum: OrderType,
+    default: OrderType.DINE_IN,
+  })
+  order_type: OrderType;
 
   @Prop()
   customer_name?: string;

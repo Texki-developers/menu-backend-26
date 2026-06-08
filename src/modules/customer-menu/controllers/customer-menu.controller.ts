@@ -8,6 +8,7 @@ import { ListMenusResponseDto } from '../dto/list-menus.dto';
 import { ListCategoriesResponseDto } from '../dto/list-categories.dto';
 import { ListItemsResponseDto } from '../dto/list-items.dto';
 import { GetBranchResponseDto } from '../dto/get-branch.dto';
+import { SearchItemsQueryDto } from '../dto/search-items.dto';
 
 @ApiTags('customer-menu')
 @Controller('public/branches')
@@ -101,5 +102,21 @@ export class CustomerMenuController {
     @Query('menuId') menuId: string,
   ): Promise<ListItemsResponseDto> {
     return this.customerMenuService.listItemsForCategory(branchId, categoryId, menuId);
+  }
+
+  @Public()
+  @Get(':branchId/search')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Search & filter items within a menu',
+    description:
+      'Public endpoint that searches and filters available items within a menu (text, type, spice, tags, price, featured) with optional sort. Returns a flat list with product data merged in.',
+  })
+  @ApiResponse({ status: HttpStatus.OK, type: ListItemsResponseDto })
+  async searchItems(
+    @Param('branchId') branchId: string,
+    @Query() query: SearchItemsQueryDto,
+  ): Promise<ListItemsResponseDto> {
+    return this.customerMenuService.searchItems(branchId, query);
   }
 }

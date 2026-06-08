@@ -13,6 +13,7 @@ import { ProductsModule } from './modules/products/products.module';
 import { MenuItemsModule } from './modules/menu-items/menu-items.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { CustomerMenuModule } from './modules/customer-menu/customer-menu.module';
+import { FavouritesModule } from './modules/favourites/favourites.module';
 import { CartModule } from './modules/cart/cart.module';
 import { FiltersModule } from './modules/filters/filters.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
@@ -79,6 +80,7 @@ import { UploadModule } from './upload/upload.module';
     MenuItemsModule,
     OrdersModule,
     CustomerMenuModule,
+    FavouritesModule,
     CartModule,
     FiltersModule,
     CloudinaryModule,

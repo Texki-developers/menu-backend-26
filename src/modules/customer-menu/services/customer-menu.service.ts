@@ -28,7 +28,9 @@ import {
 } from '../dto/list-categories.dto';
 import { ListItemsResponseDto } from '../dto/list-items.dto';
 import { GetBranchResponseDto } from '../dto/get-branch.dto';
+import { SearchItemsQueryDto } from '../dto/search-items.dto';
 import { handleDbError } from '../../../common/utils';
+import { escapeRegex } from '../../../common/utils/regex.utils';
 
 interface RawMenuItem {
   _id: Types.ObjectId | string;
@@ -471,45 +473,7 @@ export class CustomerMenuService {
         .sort({ sort_order: 1 })
         .lean<RawMenuItem[]>();
 
-      const productIds = Array.from(new Set(menuItems.map((m) => m.product_id)));
-      const productObjectIds = productIds
-        .filter((id) => isValidObjectId(id))
-        .map((id) => new Types.ObjectId(id));
-
-      const products = productObjectIds.length
-        ? await this.productModel
-            .find({ _id: { $in: productObjectIds }, is_deleted: { $ne: true } })
-            .lean()
-        : [];
-      const productById = new Map(products.map((p) => [p._id?.toString(), p]));
-
-      const items: CustomerMenuItemDto[] = [];
-      for (const item of menuItems) {
-        const product = productById.get(item.product_id?.toString());
-        if (!product) continue;
-
-        items.push({
-          id: item._id.toString(),
-          product_id: item.product_id,
-          name: product.name,
-          slug: product.slug,
-          description: product.description,
-          type: product.type,
-          spice_level: product.spice_level,
-          is_featured: item.is_featured,
-          calories: product.calories,
-          tags: product.tags ?? [],
-          allergens: product.allergens ?? [],
-          base_price: item.base_price,
-          selling_price: item.selling_price,
-          discount_price: item.discount_price,
-          is_available: item.is_available,
-          prep_time: item.prep_time,
-          max_quantity: item.max_quantity,
-          media: (item.media?.length ? item.media : product.media) ?? [],
-        });
-      }
-
+      const items = await this.enrichMenuItems(menuItems);
       return { items };
     } catch (error) {
       if (error instanceof NotFoundException || error instanceof BadRequestException) {
@@ -518,5 +482,159 @@ export class CustomerMenuService {
       handleDbError(error, 'listing items for category');
       throw error;
     }
+  }
+
+  async searchItems(
+    branchId: string,
+    dto: SearchItemsQueryDto,
+  ): Promise<ListItemsResponseDto> {
+    if (!isValidObjectId(branchId)) {
+      throw new BadRequestException('Invalid branchId');
+    }
+    if (!isValidObjectId(dto.menuId)) {
+      throw new BadRequestException('Invalid menuId');
+    }
+
+    try {
+      const branch = await this.branchModel.findById(branchId).lean();
+      if (!branch || branch.status !== BranchStatus.ACTIVE) {
+        throw new NotFoundException('Branch not found or inactive');
+      }
+
+      const menu = await this.menuModel.findById(dto.menuId).lean();
+      if (
+        !menu ||
+        menu.branch_id?.toString() !== branchId ||
+        menu.status !== MenuStatus.ACTIVE ||
+        !menu.isActive
+      ) {
+        throw new NotFoundException('Menu not found or inactive');
+      }
+
+      const menuItems = await this.menuItemModel
+        .find({
+          branch_id: branchId,
+          menu_id: dto.menuId,
+          is_available: true,
+        })
+        .sort({ sort_order: 1 })
+        .lean<RawMenuItem[]>();
+
+      let items = await this.enrichMenuItems(menuItems);
+
+      // ── In-memory filtering (searchable fields span Product + MenuItem) ──
+      const csv = (v?: string) =>
+        (v ?? '')
+          .split(',')
+          .map((s) => s.trim().toLowerCase())
+          .filter(Boolean);
+
+      if (dto.query?.trim()) {
+        const re = new RegExp(escapeRegex(dto.query.trim()), 'i');
+        items = items.filter(
+          (it) => re.test(it.name) || re.test(it.description ?? ''),
+        );
+      }
+      const types = csv(dto.type);
+      if (types.length) {
+        items = items.filter((it) => types.includes((it.type ?? '').toLowerCase()));
+      }
+      const spice = csv(dto.spice_level);
+      if (spice.length) {
+        items = items.filter((it) =>
+          spice.includes((it.spice_level ?? '').toLowerCase()),
+        );
+      }
+      const tags = csv(dto.tags);
+      if (tags.length) {
+        items = items.filter((it) =>
+          (it.tags ?? []).some((t) => tags.includes(t.toLowerCase())),
+        );
+      }
+      if (dto.featured) {
+        items = items.filter((it) => it.is_featured);
+      }
+      const effectivePrice = (it: CustomerMenuItemDto) =>
+        it.discount_price ?? it.selling_price;
+      if (dto.price_min != null) {
+        items = items.filter((it) => effectivePrice(it) >= dto.price_min!);
+      }
+      if (dto.price_max != null) {
+        items = items.filter((it) => effectivePrice(it) <= dto.price_max!);
+      }
+
+      // ── Sorting ──
+      if (dto.sort_by) {
+        const dir = dto.sort_order === 'desc' ? -1 : 1;
+        items = [...items].sort((a, b) => {
+          switch (dto.sort_by) {
+            case 'price':
+              return (effectivePrice(a) - effectivePrice(b)) * dir;
+            case 'name':
+              return a.name.localeCompare(b.name) * dir;
+            case 'featured':
+              return (Number(a.is_featured) - Number(b.is_featured)) * dir;
+            default:
+              return 0;
+          }
+        });
+      }
+
+      return { items };
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      handleDbError(error, 'searching items');
+      throw error;
+    }
+  }
+
+  /**
+   * Merge a set of raw menu_items with their parent Product data into the
+   * customer-facing item shape. Drops items whose product is missing/deleted.
+   */
+  private async enrichMenuItems(
+    menuItems: RawMenuItem[],
+  ): Promise<CustomerMenuItemDto[]> {
+    const productIds = Array.from(new Set(menuItems.map((m) => m.product_id)));
+    const productObjectIds = productIds
+      .filter((id) => isValidObjectId(id))
+      .map((id) => new Types.ObjectId(id));
+
+    const products = productObjectIds.length
+      ? await this.productModel
+          .find({ _id: { $in: productObjectIds }, is_deleted: { $ne: true } })
+          .lean()
+      : [];
+    const productById = new Map(products.map((p) => [p._id?.toString(), p]));
+
+    const items: CustomerMenuItemDto[] = [];
+    for (const item of menuItems) {
+      const product = productById.get(item.product_id?.toString());
+      if (!product) continue;
+
+      items.push({
+        id: item._id.toString(),
+        product_id: item.product_id,
+        name: product.name,
+        slug: product.slug,
+        description: product.description,
+        type: product.type,
+        spice_level: product.spice_level,
+        is_featured: item.is_featured,
+        calories: product.calories,
+        tags: product.tags ?? [],
+        allergens: product.allergens ?? [],
+        base_price: item.base_price,
+        selling_price: item.selling_price,
+        discount_price: item.discount_price,
+        is_available: item.is_available,
+        prep_time: item.prep_time,
+        max_quantity: item.max_quantity,
+        media: (item.media?.length ? item.media : product.media) ?? [],
+      });
+    }
+    return items;
   }
 }
