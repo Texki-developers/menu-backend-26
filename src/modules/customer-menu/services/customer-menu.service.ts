@@ -520,7 +520,15 @@ export class CustomerMenuService {
         .sort({ sort_order: 1 })
         .lean<RawMenuItem[]>();
 
+      const _rawCount = menuItems.length;
+      const _anyMenuItemForBranch = await this.menuItemModel.countDocuments({
+        branch_id: branchId,
+      });
+      const _byMenuOnly = await this.menuItemModel.countDocuments({
+        menu_id: dto.menuId,
+      });
       let items = await this.enrichMenuItems(menuItems);
+      const _enrichedCount = items.length;
 
       // ── In-memory filtering (searchable fields span Product + MenuItem) ──
       const csv = (v?: string) =>
@@ -580,7 +588,17 @@ export class CustomerMenuService {
         });
       }
 
-      return { items };
+      return {
+        items,
+        _debug: {
+          branchId,
+          menuId: dto.menuId,
+          rawCount: _rawCount,
+          enrichedCount: _enrichedCount,
+          anyMenuItemForBranch: _anyMenuItemForBranch,
+          byMenuOnly: _byMenuOnly,
+        },
+      } as unknown as ListItemsResponseDto;
     } catch (error) {
       if (error instanceof NotFoundException || error instanceof BadRequestException) {
         throw error;
