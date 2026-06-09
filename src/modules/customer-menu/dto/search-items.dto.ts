@@ -37,13 +37,17 @@ export class SearchItemsQueryDto {
 
   @ApiPropertyOptional({ description: 'Minimum effective price' })
   @IsOptional()
-  @Transform(({ value }) => (value === '' ? undefined : Number(value)))
+  @Transform(({ value }) =>
+    value === '' || value == null ? undefined : Number(value),
+  )
   @IsNumber()
   price_min?: number;
 
   @ApiPropertyOptional({ description: 'Maximum effective price' })
   @IsOptional()
-  @Transform(({ value }) => (value === '' ? undefined : Number(value)))
+  @Transform(({ value }) =>
+    value === '' || value == null ? undefined : Number(value),
+  )
   @IsNumber()
   price_max?: number;
 
