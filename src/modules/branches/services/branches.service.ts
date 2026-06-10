@@ -75,7 +75,6 @@ export class BranchService {
             
             const headers = ['Name', 'Email', 'Phone', 'Branch Type', 'City', 'Street', 'Status', 'Created At'];
             const rows = branches.map(branch => {
-                console.log("🚀 ~ BranchService ~ downloadBranchesCsv ~ branch:", branch)
                 return [
                     branch.name,
                     branch.email || '',

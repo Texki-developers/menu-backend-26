@@ -9,6 +9,7 @@ import { SortOrder } from '../../../common/interfaces/pagination.interface';
 import { handleDbError, escapeRegex, paginate } from '../../../common/utils';
 import { Category } from '../../category/schema/category.schema';
 import { isMenuActiveAt } from '../utils/menu-schedule';
+import { MenuStatus } from '../constants/constant';
 
 @Injectable()
 export class MenuService {
@@ -32,7 +33,6 @@ export class MenuService {
     }
 
     async getAllMenus(getAllMenusDto: GetAllMenusDto, orgId: string, branchId: string) {
-        console.log("🚀 ~ MenuService ~ getAllMenus ~ getAllMenusDto:", {getAllMenusDto,orgId,branchId})
         try {
             const { 
                 query, 
@@ -74,7 +74,7 @@ export class MenuService {
                 searchFilter,
                 extraFacets: {
                     totalActive: [
-                        { $match: { status: 'active' } },
+                        { $match: { status: MenuStatus.ACTIVE } },
                         { $count: 'count' }
                     ]
                 }
@@ -84,7 +84,7 @@ export class MenuService {
             const data = (result.data as any[]).map((m) => ({
                 ...m,
                 is_currently_active:
-                    m.status === 'active' && m.isActive !== false && isMenuActiveAt(m.schedule, now),
+                    m.status === MenuStatus.ACTIVE && m.isActive !== false && isMenuActiveAt(m.schedule, now),
             }));
             return { ...result, data };
         } catch (error) {
@@ -133,7 +133,7 @@ export class MenuService {
             return {
                 ...menu,
                 is_currently_active:
-                    menu.status === 'active' && menu.isActive !== false && isMenuActiveAt(menu.schedule),
+                    menu.status === MenuStatus.ACTIVE && menu.isActive !== false && isMenuActiveAt(menu.schedule),
             };
         } catch (error) {
             if (error instanceof NotFoundException) throw error;

@@ -83,7 +83,6 @@ export class UsersService {
 
   // Staff Management CRUD
   async getAllStaff(queryDto: GetAllStaffDto) {
-    console.log("🚀 ~ UsersService ~ getAllStaff ~ queryDto:", queryDto)
     try {
       const baseFilter: Record<string, any> = {};
       if (queryDto.organization_id) {
@@ -108,8 +107,6 @@ export class UsersService {
         ];
       }
       
-      console.log("🚀 ~ UsersService ~ getAllStaff ~ baseFilter:", baseFilter)
-      console.log("🚀 ~ UsersService ~ getAllStaff ~ searchFilter:", searchFilter)
       return await paginate(this.staffModel, {
         page: queryDto.page,
         limit: queryDto.limit,

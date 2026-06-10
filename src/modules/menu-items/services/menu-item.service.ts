@@ -67,7 +67,6 @@ export class MenuItemService {
         sortBy = 'sort_order',
         sortOrder = SortOrder.ASC,
       } = dto;
-      console.log("🚀 ~ MenuItemService ~ getAllMenuItems ~ dto:", dto)
       const baseFilter: Record<string, any> = { organization_id: orgId };
       if (branchId) {
         baseFilter.branch_id = branchId;

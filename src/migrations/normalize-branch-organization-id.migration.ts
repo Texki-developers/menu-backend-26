@@ -14,9 +14,7 @@ export class NormalizeBranchOrganizationIdMigration {
         this.logger.log('Running NormalizeBranchOrganizationIdMigration...');
 
         const collection = this.branchModel.collection;
-        console.log("🚀 ~ NormalizeBranchOrganizationIdMigration ~ run ~ collection:", collection)
         const cursor = collection.find({ organization_id: { $type: 'objectId' } });
-        console.log("🚀 ~ NormalizeBranchOrganizationIdMigration ~ run ~ cursor:", cursor)
 
         let updatedCount = 0;
         for await (const doc of cursor) {
